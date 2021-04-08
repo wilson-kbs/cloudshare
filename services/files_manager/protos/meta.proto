@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package meta;
+
+import "google/protobuf/wrappers.proto";
+
+option go_package = "github.com/wilson-kbs/cloudshare/services/files_manager/modules/grpc/meta";
+
+service MetaService {
+  rpc GetMetaUpload(UploadId) returns (MetaUpload) {}
+  rpc GetUploadMetaFile (UploadAndFileId) returns (MetaFile) {}
+  rpc GetUploadMetaFiles (UploadId) returns (UploadMetaFiles) {}
+  rpc UploadIsActive(UploadId) returns (google.protobuf.BoolValue) {}
+  rpc TokenIsValid (TokenCred) returns (google.protobuf.BoolValue) {}
+}
+message MetaUpload {
+  string id = 1;
+  bool auth = 2;
+  bool active = 3;
+  string expireAt = 4;
+  bool permanent = 5;
+}
+
+message MetaFile {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  int64 size = 4;
+  int64 lastModified = 5;
+}
+
+message UploadId {
+  string id = 1;
+}
+
+message UploadMetaFiles {
+  repeated MetaFile files = 15;
+}
+
+message UploadFilesId {
+  string uploadId = 1;
+  repeated string filesId = 15;
+}
+
+message UploadAndFileId {
+    string uploadId = 1;
+    string fileId = 2;
+}
+
+message TokenCred {
+  string uploadId = 1;
+  string token = 2;
+}

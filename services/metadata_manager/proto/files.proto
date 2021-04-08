@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package files;
+
+import "google/protobuf/wrappers.proto";
+
+option go_package = "github.com/wilson-kbs/tmpfiles/files-service/modules/grpc/files";
+
+service FilesService {
+  rpc FilesExist (StoreFilesId) returns (google.protobuf.BoolValue) {}
+  rpc DeleteFiles (StoreFilesId) returns (google.protobuf.BoolValue) {}
+  rpc MoveFilesToUploadStore (MoveTo) returns (google.protobuf.BoolValue) {}
+  rpc GetMetaCacheFile (FileId) returns (MetaFile) {}
+}
+
+message FileId {
+  string id = 1;
+}
+
+message StoreFilesId {
+  enum Store {
+      UNKNOWN = 0;
+      UPLOAD = 1;
+      CACHE = 2;
+  }
+  Store store = 1;
+  repeated string ids = 2;
+}
+
+message MoveTo {
+  string fromCacheId = 1;
+  string toUploadId = 2;
+}
+
+message MetaFile {
+  string name = 1;
+  string type = 2;
+  int64 size = 3;
+  int64 lastModified = 4;
+}

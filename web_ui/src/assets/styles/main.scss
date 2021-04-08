@@ -1,0 +1,74 @@
+@import "font-awesome/fontawesome.scss";
+@import "font-awesome/solid.scss";
+
+@import "color";
+@import "core";
+
+html,
+body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+html {
+  font-size: 10px;
+  color: var(--color-main-text);
+  background-color: var(--color-main-background);
+  border-color: var(--color-border);
+  font-family: "Open Sans", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  font-family: "Open Sans", sans-serif;
+}
+
+body {
+  font-size: 1.6rem;
+}
+
+.not-selected {
+  user-select: none;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  white-space: nowrap;
+}
+
+#filestable {
+  position: relative;
+  width: 100%;
+  flex-direction: column;
+}
+
+:root {
+  --image-logo: url(/core/img/logo/logo.png?v=0);
+  --image-login-background: url(/core/img/background.png?v=0);
+  --image-logoheader: url(/core/img/logo/logo.png?v=0);
+  --image-favicon: url(/core/img/logo/logo.png?v=0);
+
+  --border-radius: 3px;
+  --border-radius-large: 10px;
+  --border-radius-pill: 100px;
+  --font-face: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen-Sans, Cantarell, Ubuntu, "Helvetica Neue", Arial, "Noto Color Emoji",
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --default-font-size: 14px;
+  --default-line-height: 24px;
+  --animation-quick: 100ms;
+  --animation-slow: 300ms;
+  --header-height: 50px;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
