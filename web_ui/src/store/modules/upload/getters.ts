@@ -17,11 +17,10 @@ export const getters: GetterTree<State, RootState> = {
   uploadCacheState: (state) => state.uploadCacheState,
   uplaodFilesLength: (state) => state.files.length,
   getOneFileNotUpload: (state) => {
-    const files = state.files.filter(
-      (item) => !item.finish && !item.pending && !item.error
-    );
+    const files = state.files.filter((item) => !item.status);
     if (files[0]) return files[0];
   },
   AllUploadFinish: (state) =>
-    state.files.filter((item) => item.finish).length == state.files.length,
+    state.files.filter((item) => item.status == "SUCCESS").length ==
+    state.files.length,
 };

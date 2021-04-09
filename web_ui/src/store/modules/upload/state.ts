@@ -1,10 +1,11 @@
 import type { ProcessState, UploadFileItem } from "@/@types";
+import { FileItem } from "@/models";
 
 export type State = {
   uploadID?: string;
   uploadState?: ProcessState;
   uploadCacheState?: ProcessState;
-  files: Array<UploadFileItem>;
+  files: Array<FileItem>;
   expiration: number;
   password: string;
 };

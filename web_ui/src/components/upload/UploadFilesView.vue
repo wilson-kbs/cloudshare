@@ -20,10 +20,10 @@
     <div ref="bodyView" class="upload-file-view-body">
       <UploadFileItem
         v-for="file in files"
-        :key="file.localID"
+        :key="file.id"
         :fileInfo="file"
         @click="
-          openDrawer(file.localID);
+          openDrawer(file.id);
           $event.preventDefault();
         "
       />

@@ -2,13 +2,13 @@
   <button
     :class="[
       'upload-file-item-wrapper',
-      { success: fileInfo.finish },
-      { pending: fileInfo.pending },
-      { error: fileInfo.error },
+      { success: isSuccess },
+      { pending: isPending },
+      { error: isError },
     ]"
   >
     <div
-      v-if="fileInfo.pending"
+      v-if="isPending"
       class="upload-progress"
       :style="{ width: progress.toFixed() + '%' }"
     ></div>
@@ -17,7 +17,7 @@
         {{ fileInfo.name }}
       </span>
       <span class="file-icon">
-        <span v-if="fileInfo.pending" class="progress-status">
+        <span v-if="isPending" class="progress-status">
           {{ progress.toFixed() }}
         </span>
       </span>
@@ -28,7 +28,8 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 
-import { UploadFileItem } from "@/@types";
+// import { UploadFileItem } from "@/@types";
+import { FileItem } from "@/models";
 
 export default defineComponent({
   components: {},
@@ -37,7 +38,7 @@ export default defineComponent({
   },
   props: {
     fileInfo: {
-      type: Object as PropType<UploadFileItem>,
+      type: Object as PropType<FileItem>,
       required: true,
     },
   },
@@ -46,7 +47,17 @@ export default defineComponent({
   },
   computed: {
     progress(): number {
+      console.log(this.fileInfo);
       return this.fileInfo.progress;
+    },
+    isPending(): boolean {
+      return this.fileInfo.status == "PENDING";
+    },
+    isSuccess(): boolean {
+      return this.fileInfo.status == "SUCCESS";
+    },
+    isError(): boolean {
+      return this.fileInfo.status == "ERROR";
     },
   },
   methods: {},

@@ -13,6 +13,7 @@ import { Getters } from "./getters";
 
 import type { UploadFileItem, UploadJSONSend } from "@/@types";
 import { Config } from "@/config";
+import { FileItem, FileItemProps } from "@/models";
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations>(
@@ -32,7 +33,7 @@ export interface Actions {
   ): void;
   [ActionTypes.START_UPLOAD](
     { commit, getters }: AugmentedActionContext,
-    payload: number // number of parallal upload
+    payload: number | undefined // number of parallal upload
   ): void;
   [ActionTypes.UPLOAD_HANDLER]({ commit }: AugmentedActionContext): void;
 }
@@ -40,62 +41,31 @@ export interface Actions {
 export const actions: ActionTree<State, RootState> & Actions = {
   [ActionTypes.ADD_FILES]({ commit, state, dispatch }, payload: Array<File>) {
     for (const FILE of payload) {
-      const CUSTOM_FILE: UploadFileItem = {
-        localID: "",
-        name: FILE.name,
-        size: FILE.size,
-        data: FILE,
-        error: false,
-        finish: false,
-        pending: false,
-        progress: 0,
-        uploader: function () {
-          const upload = new Upload(this.data, {
-            endpoint: Config.TUS_PATH,
-            retryDelays: [0, 3000, 5000, 10000, 20000],
-            metadata: {
-              filename: this.data.name,
-              filetype: this.data.type,
-              lastmodified: this.data.lastModified.toString(),
-            },
-            onError: (error) => {
-              this.error = true;
-              console.log("Failed because: " + error);
-            },
-            onProgress: (bytesUploaded, bytesTotal) => {
-              this.progress = Math.floor((bytesUploaded / bytesTotal) * 100);
-            },
-            onSuccess: () => {
-              this.pending = false;
-              this.finish = true;
-              this.serverID = upload.url?.split("/").pop() ?? undefined;
-              dispatch(ActionTypes.UPLOAD_HANDLER);
-            },
-          });
-
-          const starter = () => {
-            this.pending = true;
-            upload.start();
-          };
-          return starter;
-        },
+      const FileItemProps: FileItemProps = {
+        id: "",
+        mode: "UPLOAD",
       };
+
       for (;;) {
         const localID = nanoid(6);
-        const v = state.files.filter((item) => item.localID == localID);
+        const v = state.files.filter((item) => item.id == localID);
         if (v.length == 0) {
-          CUSTOM_FILE.localID = localID;
+          FileItemProps.id = localID;
           break;
         }
       }
-      commit(MutationTypes.ADD_FILE, CUSTOM_FILE);
+      const fileItem = new FileItem(FileItemProps);
+      fileItem.setMeta(FILE.name, FILE.size);
+      fileItem.generateUploader(FILE);
+      commit(MutationTypes.ADD_FILE, fileItem);
     }
   },
-  [ActionTypes.START_UPLOAD]({ state }, payload?) {
+  [ActionTypes.START_UPLOAD]({ state }, payload) {
     const numParallalUpload = payload ?? state.files.length < 2 ? 1 : 2;
 
     for (let i = 0; i < numParallalUpload; i++) {
-      state.files[i].uploader()();
+      const file = state.files[i];
+      if (file.upload) file.upload();
     }
   },
   async [ActionTypes.UPLOAD_HANDLER]({ state, getters, commit }) {

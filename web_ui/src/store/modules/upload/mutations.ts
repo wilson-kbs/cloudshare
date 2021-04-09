@@ -4,9 +4,10 @@ import type { State } from "./state";
 import type { UploadFileItem } from "@/@types";
 
 import { UploadMutationTypes as MutationTypes } from "./mutation-types";
+import { FileItem } from "@/models";
 
 export type Mutations<S = State> = {
-  [MutationTypes.ADD_FILE](state: S, payload: UploadFileItem): void;
+  [MutationTypes.ADD_FILE](state: S, payload: FileItem): void;
   [MutationTypes.REMOVE_FILE](state: S, payload: string): void;
   [MutationTypes.SET_UPLOAD_ID](state: S, payload: string): void;
   [MutationTypes.SET_UPLOAD_STATE](
@@ -22,12 +23,12 @@ export type Mutations<S = State> = {
 };
 
 export const mutations: MutationTree<State> & Mutations = {
-  [MutationTypes.ADD_FILE](state, payload: UploadFileItem) {
+  [MutationTypes.ADD_FILE](state, payload: FileItem) {
     state.files.push(payload);
   },
   [MutationTypes.REMOVE_FILE](state, payload) {
     state.files.splice(
-      state.files.findIndex((item) => item.localID == payload),
+      state.files.findIndex((item) => item.id == payload),
       1
     );
   },

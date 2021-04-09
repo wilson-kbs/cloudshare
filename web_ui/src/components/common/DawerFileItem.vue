@@ -108,10 +108,10 @@ export default defineComponent({
     getFileInfo() {
       if (this.mode == "upload") {
         let fileItem = this.$store.state.upload.files.find(
-          (item) => item.localID == this.fileID
+          (item) => item.id == this.fileID
         );
         this.fileInfo = {
-          id: fileItem!.localID,
+          id: fileItem!.id,
           name: fileItem!.name,
           size: this.formatFileSize(fileItem!.size),
         };
