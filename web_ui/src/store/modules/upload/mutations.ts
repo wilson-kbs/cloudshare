@@ -7,24 +7,24 @@ import { UploadMutationTypes as MutationTypes } from "./mutation-types";
 import { FileItem } from "@/models";
 
 export type Mutations<S = State> = {
-  [MutationTypes.ADD_FILE](state: S, payload: FileItem): void;
+  [MutationTypes.PUSH_FILE](state: S, payload: FileItem): void;
   [MutationTypes.REMOVE_FILE](state: S, payload: string): void;
-  [MutationTypes.SET_UPLOAD_ID](state: S, payload: string): void;
-  [MutationTypes.SET_UPLOAD_STATE](
+  [MutationTypes.UPLOAD_ID](state: S, payload: string): void;
+  [MutationTypes.STATUS](
     state: S,
     payload: "PENDING" | "SUCCESS" | "ERROR" | undefined
   ): void;
-  [MutationTypes.SET_UPLOAD_CACHE_STATE](
+  [MutationTypes.CACHE_STATUS](
     state: S,
     payload: "PENDING" | "SUCCESS" | "ERROR" | undefined
   ): void;
-  [MutationTypes.UPDATE_EXPIRATION](state: S, payload: number): void;
-  [MutationTypes.UPDATE_PASSWORD](state: S, payload: string): void;
+  [MutationTypes.EXPIRATION](state: S, payload: number): void;
+  [MutationTypes.PASSWORD](state: S, payload: string): void;
 };
 
 export const mutations: MutationTree<State> & Mutations = {
-  [MutationTypes.ADD_FILE](state, payload: FileItem) {
-    state.files.push(payload);
+  [MutationTypes.PUSH_FILE](state, file: FileItem) {
+    state.files.push(file);
   },
   [MutationTypes.REMOVE_FILE](state, payload) {
     state.files.splice(
@@ -32,19 +32,19 @@ export const mutations: MutationTree<State> & Mutations = {
       1
     );
   },
-  [MutationTypes.SET_UPLOAD_ID](state, payload) {
+  [MutationTypes.UPLOAD_ID](state, payload) {
     state.uploadID = payload;
   },
-  [MutationTypes.SET_UPLOAD_STATE](state, payload) {
-    state.uploadState = payload;
+  [MutationTypes.STATUS](state, payload) {
+    state.status = payload;
   },
-  [MutationTypes.SET_UPLOAD_CACHE_STATE](state, payload) {
-    state.uploadCacheState = payload;
+  [MutationTypes.CACHE_STATUS](state, payload) {
+    state.cacheStatus = payload;
   },
-  [MutationTypes.UPDATE_EXPIRATION](state, payload: number) {
-    state.expiration = payload;
+  [MutationTypes.EXPIRATION](state, payload: number) {
+    state.options.expiration = payload;
   },
-  [MutationTypes.UPDATE_PASSWORD](state, payload: string) {
-    state.password = payload;
+  [MutationTypes.PASSWORD](state, payload: string) {
+    state.options.password = payload;
   },
 };

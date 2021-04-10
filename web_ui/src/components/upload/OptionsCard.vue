@@ -36,10 +36,10 @@ export default defineComponent({
   computed: {
     password: {
       get(): string {
-        return this.$store.state.upload.password;
+        return this.$store.state.upload.options.password;
       },
       set(value: string) {
-        this.$store.commit(UploadMutationTypes.UPDATE_PASSWORD, value);
+        this.$store.commit(UploadMutationTypes.PASSWORD, value);
       },
     },
   },

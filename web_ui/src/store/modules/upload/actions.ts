@@ -27,9 +27,9 @@ type AugmentedActionContext = {
 } & Omit<ActionContext<State, RootState>, "commit" | "getters">;
 
 export interface Actions {
-  [ActionTypes.ADD_FILES](
+  [ActionTypes.ADD_FILE](
     { commit }: AugmentedActionContext,
-    payload: File[]
+    payload: File
   ): void;
   [ActionTypes.START_UPLOAD](
     { commit, getters }: AugmentedActionContext,
@@ -39,26 +39,24 @@ export interface Actions {
 }
 
 export const actions: ActionTree<State, RootState> & Actions = {
-  [ActionTypes.ADD_FILES]({ commit, state, dispatch }, payload: Array<File>) {
-    for (const FILE of payload) {
-      const FileItemProps: FileItemProps = {
-        id: "",
-        mode: "UPLOAD",
-      };
+  [ActionTypes.ADD_FILE]({ commit, state, dispatch }, file) {
+    const FileItemProps: FileItemProps = {
+      id: "",
+      mode: "UPLOAD",
+    };
 
-      for (;;) {
-        const localID = nanoid(6);
-        const v = state.files.filter((item) => item.id == localID);
-        if (v.length == 0) {
-          FileItemProps.id = localID;
-          break;
-        }
+    for (;;) {
+      const localID = nanoid(6);
+      const v = state.files.filter((item) => item.id == localID);
+      if (v.length == 0) {
+        FileItemProps.id = localID;
+        break;
       }
-      const fileItem = new FileItem(FileItemProps);
-      fileItem.setMeta(FILE.name, FILE.size);
-      fileItem.generateUploader(FILE);
-      commit(MutationTypes.ADD_FILE, fileItem);
     }
+    const fileItem = new FileItem(FileItemProps);
+    fileItem.setMeta(file.name, file.size);
+    fileItem.generateUploader(file);
+    commit(MutationTypes.PUSH_FILE, fileItem);
   },
   [ActionTypes.START_UPLOAD]({ state }, payload) {
     const numParallalUpload = payload ?? state.files.length < 2 ? 1 : 2;
@@ -76,19 +74,19 @@ export const actions: ActionTree<State, RootState> & Actions = {
     }
 
     if (!getters.AllUploadFinish) return;
-    if (state.uploadCacheState == "SUCCESS") return;
-    else commit(MutationTypes.SET_UPLOAD_CACHE_STATE, "SUCCESS");
+    if (state.cacheStatus == "SUCCESS") return;
+    else commit(MutationTypes.CACHE_STATUS, "SUCCESS");
 
     const body: UploadJSONSend = {
-      auth: state.password.length < 4 ? false : true,
-      password: state.password,
-      expire: state.expiration,
-      filesID: state.files.map((item) => item.serverID!),
+      auth: getters.UPLOAD__Password.length < 4 ? false : true,
+      password: getters.UPLOAD__Password,
+      expire: getters.UPLOAD__Expiration,
+      filesID: getters.UPLOAD__GetAllServerID,
     };
 
     function handleResponse(response: Response) {
       if (!response.ok) {
-        commit(MutationTypes.SET_UPLOAD_STATE, "ERROR");
+        commit(MutationTypes.STATUS, "ERROR");
         throw response.status;
       }
       return response;
@@ -104,7 +102,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
     })
       .then(handleResponse)
       .then((response) => response.text());
-    commit(MutationTypes.SET_UPLOAD_ID, data);
-    commit(MutationTypes.SET_UPLOAD_STATE, "SUCCESS");
+    commit(MutationTypes.UPLOAD_ID, data);
+    commit(MutationTypes.STATUS, "SUCCESS");
   },
 };

@@ -1,19 +1,27 @@
-import type { ProcessState, UploadFileItem } from "@/@types";
+import type { ProcessState } from "@/@types";
 import { FileItem } from "@/models";
+
+export interface UploadOptions {
+  expiration: number;
+  password: string;
+}
 
 export type State = {
   uploadID?: string;
-  uploadState?: ProcessState;
-  uploadCacheState?: ProcessState;
+  status?: ProcessState;
+  cacheStatus?: ProcessState;
+  progress: number;
   files: Array<FileItem>;
-  expiration: number;
-  password: string;
+  maxFiles: number;
+  options: UploadOptions;
 };
 
 export const state: State = {
-  //uploadID: "",
-  //uploadState: "SUCCESS",
   files: [],
-  expiration: 0,
-  password: "",
+  maxFiles: 5,
+  options: {
+    expiration: 0,
+    password: "",
+  },
+  progress: 0,
 };

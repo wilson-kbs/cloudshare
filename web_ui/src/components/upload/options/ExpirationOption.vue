@@ -44,10 +44,10 @@ export default defineComponent({
   computed: {
     expireValue: {
       get() {
-        return this.$store.state.upload.expiration;
+        return this.$store.state.upload.options.expiration;
       },
       set(value) {
-        this.$store.commit(UploadMutationTypes.UPDATE_EXPIRATION, value);
+        this.$store.commit(UploadMutationTypes.EXPIRATION, value);
       },
     },
   },

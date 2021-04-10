@@ -1,17 +1,17 @@
 <template>
   <div>
-    <UploadCard />
+    <KSUpload />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, Suspense } from "vue";
-import UploadCard from "@/components/upload/UploadCard.vue";
+import KSUpload from "@/components/upload/KSUpload.vue";
 
 export default defineComponent({
   name: "Home",
   components: {
-    UploadCard,
+    KSUpload,
   },
 });
 </script>

@@ -1,5 +1,5 @@
 export enum UploadActionTypes {
-  ADD_FILES = "ADD_FILES",
+  ADD_FILE = "UPLOAD__ADD_FILE",
   START_UPLOAD = "START_UPLOAD",
   UPLOAD_HANDLER = "UPLOAD_HANDLER",
 }
