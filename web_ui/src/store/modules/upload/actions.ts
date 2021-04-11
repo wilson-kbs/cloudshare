@@ -41,12 +41,16 @@ export interface Actions {
     { commit, getters }: AugmentedActionContext,
     payload: number | undefined // number of parallal upload
   ): void;
-  [ActionTypes.HANDLER]({ commit }: AugmentedActionContext): void;
-  [ActionTypes.SEND_OPTIONS]({ commit }: AugmentedActionContext): void;
+  [ActionTypes.HANDLER]({
+    commit,
+    getters,
+    dispatch,
+  }: AugmentedActionContext): void;
+  [ActionTypes.SEND_OPTIONS]({ commit }: AugmentedActionContext): Promise<void>;
 }
 
 export const actions: ActionTree<State, RootState> & Actions = {
-  [ActionTypes.ADD_FILE]({ commit, state, dispatch }, file) {
+  [ActionTypes.ADD_FILE]({ commit, state }, file) {
     const FileItemProps: FileItemProps = {
       id: "",
       mode: "UPLOAD",
@@ -65,15 +69,15 @@ export const actions: ActionTree<State, RootState> & Actions = {
     fileItem.generateUploader(file);
     commit(MutationTypes.PUSH_FILE, fileItem);
   },
-  [ActionTypes.START_UPLOAD]({ state }, payload) {
+  [ActionTypes.START_UPLOAD]({ state, commit }, payload) {
     const numParallalUpload = payload ?? state.files.length < 2 ? 1 : 2;
-
+    commit(MutationTypes.PROCESS_STATE, "RUNNING");
     for (let i = 0; i < numParallalUpload; i++) {
       const file = state.files[i];
       if (file.upload) file.upload();
     }
   },
-  [ActionTypes.HANDLER]({ state, getters, commit }) {
+  async [ActionTypes.HANDLER]({ state, getters, commit, dispatch }) {
     // Send next files
     const file = getters.UPLOAD__NextReadyFile;
     if (file && file.upload) return file.upload();
@@ -82,6 +86,10 @@ export const actions: ActionTree<State, RootState> & Actions = {
     if (!getters.UPLOAD__IsAllFinish) return;
     if (state.processCacheState.isFinish) return;
     else commit(MutationTypes.PROCESS_CACHE_STATE, "FINISH");
+
+    dispatch(ActionTypes.SEND_OPTIONS).then(() => {
+      commit(MutationTypes.PROCESS_STATE, "FINISH");
+    });
   },
   async [ActionTypes.SEND_OPTIONS]({ state, getters, commit }) {
     const body: UploadJSONSend = {
@@ -109,7 +117,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
     })
       .then(handleResponse)
       .then((response) => response.text());
-    commit(MutationTypes.UPLOAD_ID, data);
-    commit(MutationTypes.PROCESS_STATE, "FINISH");
+    return commit(MutationTypes.UPLOAD_ID, data);
   },
 };

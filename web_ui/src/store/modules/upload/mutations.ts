@@ -14,6 +14,7 @@ export type Mutations<S = State> = {
   [MutationTypes.PROCESS_CACHE_STATE](state: S, payload: ProcessState): void;
   [MutationTypes.EXPIRATION](state: S, payload: number): void;
   [MutationTypes.PASSWORD](state: S, payload: string): void;
+  [MutationTypes.ADD_BYTES_UPLOADED](state: State, payload: number): void;
 };
 
 export const mutations: MutationTree<State> & Mutations = {
@@ -40,5 +41,8 @@ export const mutations: MutationTree<State> & Mutations = {
   },
   [MutationTypes.PASSWORD](state, payload: string) {
     state.options.password = payload;
+  },
+  [MutationTypes.ADD_BYTES_UPLOADED](state, bytes) {
+    state.bytesUploaded += bytes;
   },
 };

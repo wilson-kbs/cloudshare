@@ -3,6 +3,7 @@ import { Config } from "@/config";
 import { useStore } from "@/store";
 import { UploadActionTypes } from "@/store/modules/upload/action-types";
 import { Upload } from "tus-js-client";
+import { UploadMutationTypes } from "@/store/modules/upload/mutation-types";
 
 type FilesItemMode = "UPLOAD" | "DOWNLOAD";
 
@@ -21,7 +22,7 @@ export class FileItem {
   serverID?: string;
 
   upload?: () => void;
-  progress = 0;
+  bytesUploaded = 0;
   processState: ProcessState;
 
   constructor(props: FileItemProps) {
@@ -44,7 +45,7 @@ export class FileItem {
   }
 
   isFinish(): boolean {
-    return this.processState.isRunning;
+    return this.processState.isFinish;
   }
 
   generateUploader(file: File) {
@@ -61,10 +62,14 @@ export class FileItem {
         this.processState.value = "ERROR";
         console.log("Failed because: " + error);
       },
-      onProgress: (bytesUploaded, bytesTotal) => {
-        console.log(bytesUploaded, bytesTotal);
-        console.log(this.processState);
-        this.progress = Math.floor((bytesUploaded / bytesTotal) * 100);
+      onProgress: (bytesUploaded) => {
+        if (this.bytesUploaded < bytesUploaded) {
+          store.commit(
+            UploadMutationTypes.ADD_BYTES_UPLOADED,
+            bytesUploaded - this.bytesUploaded
+          );
+          this.bytesUploaded = bytesUploaded;
+        }
       },
       onSuccess: () => {
         this.processState.value = "FINISH";

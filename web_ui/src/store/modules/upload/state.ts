@@ -18,6 +18,7 @@ export type State = {
   processState: ProcessState;
   processCacheState: ProcessState;
   progress: number;
+  bytesUploaded: number;
   files: Array<FileItem>;
   maxFiles: number;
   options: UploadOptions;
@@ -33,4 +34,5 @@ export const state: State = {
   processState: new ProcessState(),
   processCacheState: new ProcessState(),
   progress: 0,
+  bytesUploaded: 0,
 };

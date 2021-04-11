@@ -1,10 +1,12 @@
 <template>
   <div>
-    <KSUpload />
-    <section class="download-url">
-      <span class="title-section-dowwnload-url">Lien vers le partage</span>
-      <InputCopy :value="downloadURL" />
-    </section>
+    <transition name="fade" mode="out-in">
+      <KSUpload v-if="!complete" @complete="complete = true" />
+      <section class="download-url" v-else>
+        <span class="title-section-dowwnload-url">Lien vers le partage</span>
+        <InputCopy :value="downloadURL" />
+      </section>
+    </transition>
   </div>
 </template>
 
@@ -22,18 +24,14 @@ export default defineComponent({
   data() {
     return {
       downloadURL: "",
+      complete: false,
     };
   },
-  computed: {
-    state(): "PENDING" | "SUCCESS" | "ERROR" | undefined {
-      return this.$store.state.upload.status;
-    },
-  },
+  computed: {},
   watch: {
-    state(newVal, _) {
-      if (newVal == "SUCCESS") {
+    complete(value) {
+      if (value)
         this.downloadURL = `${window.location.origin}/files?u=${this.$store.state.upload.uploadID}`;
-      }
     },
   },
 });

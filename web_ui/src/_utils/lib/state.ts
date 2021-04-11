@@ -7,40 +7,33 @@ export type ProcessStateValue =
   | "ERROR";
 
 export class ProcessState {
-  private _value: ProcessStateValue;
+  value: ProcessStateValue;
 
   constructor() {
-    this._value = "CREATED";
-  }
-
-  get value(): ProcessStateValue {
-    return this._value;
-  }
-  set value(value: ProcessStateValue) {
-    this._value = value;
+    this.value = "CREATED";
   }
 
   get isCreated(): boolean {
-    return this._value == "CREATED";
+    return this.value == "CREATED";
   }
 
   get isReady(): boolean {
-    return this._value == "READY";
+    return this.value == "READY";
   }
 
   get isRunning(): boolean {
-    return this._value == "RUNNING";
+    return this.value == "RUNNING";
   }
 
   get isFinish(): boolean {
-    return this._value == "FINISH";
+    return this.value == "FINISH";
   }
 
   get isSuccess(): boolean {
-    return this._value == "SUCCESS";
+    return this.value == "SUCCESS";
   }
 
   get isError(): boolean {
-    return this._value == "ERROR";
+    return this.value == "ERROR";
   }
 }

@@ -24,7 +24,3 @@ export function formatFileSize(value: number): string {
   }
   return result;
 }
-
-export function sleep(ms: number): Promise<number> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}

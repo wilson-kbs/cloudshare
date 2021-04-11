@@ -1,18 +1,27 @@
 <template>
   <div class="ks-upload">
-    <div class="ks-upload-wrapper">
-      <div class="ks-upload-content">
-        <div class="ks-upload__header">
-          <span class="header-title">Partage de fichiers</span>
+    <div :class="['ks-upload-wrapper', { 'upload-running': startUpload }]">
+      <transition name="scale" v-on:after-leave="afterAnimate">
+        <div class="ks-upload-content" v-if="!startUpload">
+          <div class="ks-upload__header">
+            <span class="header-title">Partage de fichiers</span>
+          </div>
+          <div class="ks-upload__body">
+            <KSFileList />
+            <OptionsCard />
+          </div>
+          <div class="ks-upload__actions">
+            <KSButton :disable="filesListIsEmpty" @click="animateBeforStart"
+              >Partager</KSButton
+            >
+          </div>
         </div>
-        <div class="ks-upload__body">
-          <KSFileList />
-          <OptionsCard />
-        </div>
-        <div class="ks-upload__actions">
-          <KSButton :disable="filesListIsEmpty">Partager</KSButton>
-        </div>
-      </div>
+      </transition>
+      <div
+        v-if="showProgressBar"
+        class="progress-bar"
+        :style="{ width: `${prevProgress}%` }"
+      ></div>
     </div>
   </div>
 </template>
@@ -26,7 +35,8 @@ import KSButton from "@/components/common/KSButton.vue";
 
 import { UploadMutationTypes } from "@/store/modules/upload/mutation-types";
 
-import type { ProcessState } from "@/_utils";
+import { ProcessState, ProcessStateValue, sleep } from "@/_utils";
+import { UploadActionTypes } from "@/store/modules/upload/action-types";
 
 export default defineComponent({
   components: {
@@ -38,29 +48,61 @@ export default defineComponent({
     return {};
   },
   data() {
-    return {};
+    return {
+      startUpload: false,
+      showProgressBar: false,
+      prevProgress: 0,
+    };
   },
   computed: {
-    state(): ProcessState {
+    processState(): ProcessState {
       return this.$store.state.upload.processState;
     },
     filesListIsEmpty(): boolean {
       return this.$store.getters.UPLOAD__FilesLength == 0;
     },
     progress(): number {
-      return this.$store.state.upload.progress;
+      return (
+        (this.$store.state.upload.bytesUploaded * 100) /
+        this.$store.getters.UPLOAD__GetSizeOfAllFiles
+      );
     },
   },
-  watch: {},
+  watch: {
+    progress(value: number) {
+      if (value > this.prevProgress) this.prevProgress += value;
+    },
+    "processState.value"() {
+      if (this.processState.isFinish) this.$emit("complete");
+    },
+  },
   methods: {
-    startUpload() {
-      this.$store.commit(UploadMutationTypes.PROCESS_STATE, "RUNNING");
+    animateBeforStart() {
+      console.log("Start Anime Upload");
+      this.startUpload = true;
+    },
+    async afterAnimate(e: any) {
+      this.showProgressBar = true;
+      //await sleep(500);
+      this.$nextTick(() =>
+        this.$store.dispatch(UploadActionTypes.START_UPLOAD)
+      );
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
+.scale-enter-active,
+.scale-leave-active {
+  transition: all 0.5s linear;
+}
+
+.scale-enter-from,
+.scale-leave-to {
+  transform: scale(0.3);
+  opacity: 0;
+}
 .ks-upload {
   display: flex;
   width: 100%;
@@ -79,6 +121,15 @@ export default defineComponent({
   position: relative;
   height: 100%;
   width: 100%;
+  border: 2px solid transparent;
+  border-radius: 3rem;
+  margin: auto;
+  transition: height 1s linear, border-color 0.1s linear;
+  &.upload-running {
+    height: 5rem;
+    border-color: var(--color-border);
+    overflow: hidden;
+  }
 }
 
 .ks-upload-content {
@@ -112,6 +163,25 @@ export default defineComponent({
   text-align: center;
   height: 30%;
   padding-top: 2.4rem;
+}
+
+.progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  max-width: 100%;
+  background-color: var(--color-primary);
+  transition: width 1s linear;
+
+  &.finish {
+    background-color: var(--color-success);
+  }
+
+  &.error {
+    background-color: var(--color-error);
+  }
 }
 
 .download-url {
