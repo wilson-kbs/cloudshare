@@ -43,13 +43,13 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
-  web_ui:
+  web-ui:
     image: "node:14.15.3-buster"
     profiles: ["dev"]
     restart: unless-stopped
     command: npm run serve
     volumes:
-      - "./web_ui:/usr/src/app"
+      - "./web-ui:/usr/src/app"
     working_dir: /usr/src/app
     ports:
       - "8080"
@@ -63,14 +63,14 @@ services:
       - metadata_manager
       - files_manager
 
-  metadata_manager:
-    build: services/metadata_manager
+  metadata-service:
+    build: services/metadata
     profiles: ["dev"]
     restart: unless-stopped
     depends_on:
       - mongo
     volumes:
-      - "./services/metadata_manager:/usr/src/app:rw"
+      - "./services/metadata:/usr/src/app:rw"
     working_dir: /usr/src/app
     ports:
       - $METADATA_SERVICES_API_PORT
@@ -95,13 +95,13 @@ services:
         aliases:
           - $METADATA_SERVICES_HOSTNAME
 
-  files_manager:
-    build: services/files_manager
+  files-service:
+    build: services/files
     profiles: ["dev"]
     restart: unless-stopped
     command: air -c .air.toml
     volumes:
-      - "./services/files_manager:/usr/src/app"
+      - "./services/files:/usr/src/app"
       - "${STORAGE_PATH}/files:/data"
     working_dir: /usr/src/app
     ports:
