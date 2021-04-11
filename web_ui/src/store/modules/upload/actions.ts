@@ -1,4 +1,4 @@
-import { ActionContext, ActionTree } from "vuex";
+import { ActionContext, ActionTree, DispatchOptions } from "vuex";
 import { nanoid } from "nanoid";
 import { Upload } from "tus-js-client";
 
@@ -16,6 +16,12 @@ import { Config } from "@/config";
 import { FileItem, FileItemProps } from "@/models";
 
 type AugmentedActionContext = {
+  dispatch<K extends keyof Actions>(
+    key: K,
+    payload?: Parameters<Actions[K]>[1],
+    options?: DispatchOptions
+  ): ReturnType<Actions[K]>;
+} & {
   commit<K extends keyof Mutations>(
     key: K,
     payload: Parameters<Mutations[K]>[1]
@@ -24,7 +30,7 @@ type AugmentedActionContext = {
   getters: {
     [K in keyof Getters]: ReturnType<Getters[K]>;
   };
-} & Omit<ActionContext<State, RootState>, "commit" | "getters">;
+} & Omit<ActionContext<State, RootState>, "commit" | "getters" | "dispatch">;
 
 export interface Actions {
   [ActionTypes.ADD_FILE](
@@ -35,7 +41,8 @@ export interface Actions {
     { commit, getters }: AugmentedActionContext,
     payload: number | undefined // number of parallal upload
   ): void;
-  [ActionTypes.UPLOAD_HANDLER]({ commit }: AugmentedActionContext): void;
+  [ActionTypes.HANDLER]({ commit }: AugmentedActionContext): void;
+  [ActionTypes.SEND_OPTIONS]({ commit }: AugmentedActionContext): void;
 }
 
 export const actions: ActionTree<State, RootState> & Actions = {
@@ -66,17 +73,17 @@ export const actions: ActionTree<State, RootState> & Actions = {
       if (file.upload) file.upload();
     }
   },
-  async [ActionTypes.UPLOAD_HANDLER]({ state, getters, commit }) {
-    const file = getters.getOneFileNotUpload;
+  [ActionTypes.HANDLER]({ state, getters, commit }) {
+    // Send next files
+    const file = getters.UPLOAD__NextReadyFile;
+    if (file && file.upload) return file.upload();
 
-    if (file != undefined) {
-      return file.uploader()();
-    }
-
-    if (!getters.AllUploadFinish) return;
-    if (state.cacheStatus == "SUCCESS") return;
-    else commit(MutationTypes.CACHE_STATUS, "SUCCESS");
-
+    // Set processCacheState to avoid multi call api
+    if (!getters.UPLOAD__IsAllFinish) return;
+    if (state.processCacheState.isFinish) return;
+    else commit(MutationTypes.PROCESS_CACHE_STATE, "FINISH");
+  },
+  async [ActionTypes.SEND_OPTIONS]({ state, getters, commit }) {
     const body: UploadJSONSend = {
       auth: getters.UPLOAD__Password.length < 4 ? false : true,
       password: getters.UPLOAD__Password,
@@ -86,7 +93,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
 
     function handleResponse(response: Response) {
       if (!response.ok) {
-        commit(MutationTypes.STATUS, "ERROR");
+        commit(MutationTypes.PROCESS_STATE, "ERROR");
         throw response.status;
       }
       return response;
@@ -103,6 +110,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
       .then(handleResponse)
       .then((response) => response.text());
     commit(MutationTypes.UPLOAD_ID, data);
-    commit(MutationTypes.STATUS, "SUCCESS");
+    commit(MutationTypes.PROCESS_STATE, "FINISH");
   },
 };

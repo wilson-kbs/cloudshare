@@ -1,27 +1,34 @@
-import { MetaFile, ProcessState, StatueCode } from "@/@types";
+import { MetaFile, StatueCode } from "@/@types";
+import { ProcessState as AuthState, ProcessState } from "@/_utils";
 
-type Auth = {
+type CredState = {
   required: boolean;
-  state?: ProcessState;
-  token?: string;
+  state: ProcessState;
+  token: string;
 };
 
-type StatueSharing = {
-  statueCode?: StatueCode;
-  state?: ProcessState;
-  auth: Auth;
-};
+interface FetcherState {
+  state: ProcessState;
+  code: number; // HTTPCode
+}
 
 export type State = {
   uploadID: string;
   files: Array<MetaFile>;
-  statueSharing: StatueSharing;
+  fetch: FetcherState;
+  auth: CredState;
 };
 
 export const state: State = {
   uploadID: "",
   files: [],
-  statueSharing: {
-    auth: { required: false },
+  fetch: {
+    state: new ProcessState(),
+    code: 0,
+  },
+  auth: {
+    required: false,
+    state: new AuthState(),
+    token: "",
   },
 };

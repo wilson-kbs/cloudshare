@@ -3,6 +3,7 @@ import { GetterTree } from "vuex";
 import { RootState } from "@/store";
 import { State } from "./state";
 import { ProcessState, UploadFileItem } from "@/@types";
+import { FileItem } from "@/models";
 
 export type Getters = {
   UPLOAD__Password(state: State): string;
@@ -10,11 +11,10 @@ export type Getters = {
   UPLOAD__GetAllServerID(state: State): Array<string>;
   UPLOAD__FilesLength(state: State): number;
   UPLOAD__GetSizeOfAllFiles(state: State): number;
-  uploadState(state: State): ProcessState | undefined;
-  uploadCacheState(state: State): ProcessState | undefined;
-  uplaodFilesLength(state: State): number;
-  getOneFileNotUpload(state: State): UploadFileItem | undefined;
-  AllUploadFinish(state: State): boolean;
+  UPLOAD__ProcessState(state: State): ProcessState;
+  UPLOAD__ProcessCacheState(state: State): ProcessState;
+  UPLOAD__NextReadyFile(state: State): FileItem | null;
+  UPLOAD__IsAllFinish(state: State): boolean;
 };
 
 export const getters: GetterTree<State, RootState> = {
@@ -33,14 +33,14 @@ export const getters: GetterTree<State, RootState> = {
         .reduce((prev, next) => prev + next);
     else return 0;
   },
-  uploadState: (state) => state.status,
-  uploadCacheState: (state) => state.cacheStatus,
-  uplaodFilesLength: (state) => state.files.length,
-  getOneFileNotUpload: (state) => {
-    const files = state.files.filter((item) => !item.status);
-    if (files[0]) return files[0];
+  UPLOAD__ProcessState: (state) => state.processState,
+  UPLOAD__ProcessCacheState: (state) => state.processCacheState,
+  UPLOAD__NextReadyFile: (state) => {
+    for (const fileItem of state.files) {
+      if (fileItem.isReady()) return fileItem;
+    }
+    return null;
   },
-  AllUploadFinish: (state) =>
-    state.files.filter((item) => item.status == "SUCCESS").length ==
-    state.files.length,
+  UPLOAD__IsAllFinish: (state) =>
+    state.files.every((fileItem) => fileItem.isFinish()),
 };

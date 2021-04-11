@@ -22,7 +22,7 @@ import { defineComponent } from "vue";
 
 import InputPassword from "@/components/common/InputPassword.vue";
 import { DownloadActionTypes } from "@/store/modules/download/action-types";
-import { ProcessState } from "@/@types";
+import { ProcessState } from "@/_utils";
 
 export default defineComponent({
   emits: ["success"],
@@ -39,17 +39,17 @@ export default defineComponent({
     };
   },
   computed: {
-    authState(): ProcessState | undefined {
-      return this.$store.state.download.statueSharing.auth.state;
+    authState(): ProcessState {
+      return this.$store.state.download.auth.state;
     },
   },
   watch: {
-    authState(value?: ProcessState) {
-      if (value == "ERROR") {
+    "authState.value"() {
+      if (this.authState.isError) {
         this.password = "";
         this.error = true;
       }
-      if (value == "SUCCESS") this.$emit("success");
+      if (this.authState.isSuccess) this.$emit("success");
     },
   },
   methods: {

@@ -1,4 +1,4 @@
-import type { ProcessState } from "@/@types";
+import { ProcessState } from "@/_utils";
 import { FileItem } from "@/models";
 
 export interface UploadOptions {
@@ -6,10 +6,17 @@ export interface UploadOptions {
   password: string;
 }
 
+export type SProcessState =
+  | "CREATED"
+  | "READY"
+  | "RUNNING"
+  | "FINISH"
+  | "ERROR";
+
 export type State = {
   uploadID?: string;
-  status?: ProcessState;
-  cacheStatus?: ProcessState;
+  processState: ProcessState;
+  processCacheState: ProcessState;
   progress: number;
   files: Array<FileItem>;
   maxFiles: number;
@@ -23,5 +30,7 @@ export const state: State = {
     expiration: 0,
     password: "",
   },
+  processState: new ProcessState(),
+  processCacheState: new ProcessState(),
   progress: 0,
 };

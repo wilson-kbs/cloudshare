@@ -30,11 +30,11 @@ type AugmentedActionContext = {
 } & Omit<ActionContext<State, RootState>, "commit" | "getters">;
 
 export interface Actions {
-  [ActionTypes.FETCH_UPLOAD](
+  [ActionTypes.FETCH_METADADTA](
     { commit, getters }: AugmentedActionContext,
     payload: string
   ): void;
-  [ActionTypes.DOWNLOAD_FILES](
+  [ActionTypes.GET_FILES](
     { commit, getters }: AugmentedActionContext,
     payload?: string // FilesID
   ): void;
@@ -46,7 +46,7 @@ export interface Actions {
 
 export const actions: ActionTree<State, RootState> & Actions = {
   async [ActionTypes.GET_AUTH]({ state, commit }, password) {
-    commit(MutationTypes.AUTH_STATE, "PENDING");
+    commit(MutationTypes.AUTH_STATE, "RUNNING");
     const url = new URL(Config.AUTH_PATH, window.location.origin);
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
@@ -76,8 +76,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
       }
     });
   },
-  async [ActionTypes.FETCH_UPLOAD]({ state, getters, commit }, filesID) {
-    commit(MutationTypes.FETCHER_STATE, "PENDING");
+  async [ActionTypes.FETCH_METADADTA]({ state, getters, commit }, filesID) {
+    commit(MutationTypes.FETCH_STATE, "RUNNING");
     const url = new URL(Config.METADATA_PATH, window.location.origin);
 
     url.searchParams.append("u", state.uploadID);
@@ -85,11 +85,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
 
     const headers = new Headers();
 
-    if (getters.AuthRequired && getters.AuthSuccess)
-      headers.append(
-        "Authorization",
-        `Bearer ${state.statueSharing.auth.token}`
-      );
+    if (getters.DOWNLOAD__IsAuthRequired && getters.DOWNLOAD__IsAuthSuccess)
+      headers.append("Authorization", `Bearer ${state.auth.token}`);
 
     const initRequest: RequestInit = {
       method: "GET",
@@ -102,18 +99,18 @@ export const actions: ActionTree<State, RootState> & Actions = {
 
     fetch(resquest).then(async (res: Response) => {
       const statueCode = res.status as StatueCode;
-      commit(MutationTypes.HTTP_STATUE_CODE, statueCode);
+      commit(MutationTypes.HTTP_CODE, statueCode);
       if (!res.ok) {
         if (res.status == 401) commit(MutationTypes.AUTH_REQUIRED, true);
-        commit(MutationTypes.FETCHER_STATE, "ERROR");
+        commit(MutationTypes.FETCH_STATE, "ERROR");
       } else {
         const data = (await res.json()) as APIMetaResponse;
         commit(MutationTypes.ADD_FILES, data.files);
-        commit(MutationTypes.FETCHER_STATE, "SUCCESS");
+        commit(MutationTypes.FETCH_STATE, "SUCCESS");
       }
     });
   },
-  [ActionTypes.DOWNLOAD_FILES](_s, fileID) {
+  [ActionTypes.GET_FILES](_s, fileID) {
     console.log(fileID);
   },
 };

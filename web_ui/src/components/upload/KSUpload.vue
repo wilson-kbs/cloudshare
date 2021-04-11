@@ -26,6 +26,8 @@ import KSButton from "@/components/common/KSButton.vue";
 
 import { UploadMutationTypes } from "@/store/modules/upload/mutation-types";
 
+import type { ProcessState } from "@/_utils";
+
 export default defineComponent({
   components: {
     KSFileList,
@@ -39,17 +41,20 @@ export default defineComponent({
     return {};
   },
   computed: {
-    state(): "PENDING" | "SUCCESS" | "ERROR" | undefined {
-      return this.$store.state.upload.status;
+    state(): ProcessState {
+      return this.$store.state.upload.processState;
     },
     filesListIsEmpty(): boolean {
       return this.$store.getters.UPLOAD__FilesLength == 0;
+    },
+    progress(): number {
+      return this.$store.state.upload.progress;
     },
   },
   watch: {},
   methods: {
     startUpload() {
-      this.$store.commit(UploadMutationTypes.STATUS, "PENDING");
+      this.$store.commit(UploadMutationTypes.PROCESS_STATE, "RUNNING");
     },
   },
 });

@@ -22,7 +22,7 @@ import Loader from "@/components/common/Loader.vue";
 import Error from "@/components/common/Error.vue";
 import Auth from "@/components/AuthView.vue";
 
-import { ProcessState } from "@/@types";
+import { ProcessState } from "@/_utils";
 
 export default defineComponent({
   name: "Files",
@@ -38,14 +38,14 @@ export default defineComponent({
 
     // Get upload ID on url params
     if (typeof route.query.u == "string")
-      store.commit(DownloadMutationTypes.DOWNLOAD__UPLOAD_ID, route.query.u);
+      store.commit(DownloadMutationTypes.UPLOAD_ID, route.query.u);
 
     // Get File ID if register on url params
     let fileID: string | undefined;
     if (typeof route.query.f == "string") fileID = route.query.f;
 
     function fetchMetadata() {
-      store.dispatch(DownloadActionTypes.FETCH_UPLOAD, fileID);
+      store.dispatch(DownloadActionTypes.FETCH_METADADTA, fileID);
     }
 
     fetchMetadata();
@@ -61,17 +61,17 @@ export default defineComponent({
   },
   computed: {
     fetchStatueCode(): number {
-      return this.$store.state.download.statueSharing.statueCode ?? 0;
+      return this.$store.state.download.fetch.code;
     },
-    fetcherState(): ProcessState | undefined {
-      return this.$store.state.download.statueSharing.state;
+    fetchState(): ProcessState {
+      return this.$store.state.download.fetch.state;
     },
     authRequired(): boolean {
-      return this.$store.state.download.statueSharing.auth.required;
+      return this.$store.state.download.auth.required;
     },
   },
   watch: {
-    fetcherState() {
+    "fetchState.value"() {
       this.updateView();
     },
   },
@@ -82,15 +82,15 @@ export default defineComponent({
       this.fetchMetadata();
     },
     updateView() {
-      if (this.fetcherState == "SUCCESS") {
+      if (this.fetchState.isFinish) {
         this.showLoader = false;
         this.success = true;
-      } else if (this.fetcherState == "PENDING") {
+      } else if (this.fetchState.isRunning) {
         this.showLoader = true;
-      } else if (this.fetcherState == "ERROR" && this.authRequired) {
+      } else if (this.fetchState.isError && this.authRequired) {
         this.showLoader = false;
         this.showAuth = true;
-      } else if (this.fetcherState == "ERROR") {
+      } else if (this.fetchState.isError) {
         this.showLoader = false;
         this.showAuth = false;
         this.success = false;

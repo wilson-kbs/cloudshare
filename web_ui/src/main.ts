@@ -4,7 +4,7 @@ import router from "./router";
 import { store } from "./store";
 import { Directives } from "./directives";
 
-import "./tmpf";
+import "./globals-CS";
 import "./assets/styles/main.scss";
 
 const app = createApp(App);

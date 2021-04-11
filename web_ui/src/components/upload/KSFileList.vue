@@ -46,14 +46,9 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 
-// import UploadFileItem from "./UploadFileItem.vue";
 import DrawerFileItem from "@/components/common/DawerFileItem.vue";
 
 import { UploadActionTypes } from "@/store/modules/upload/action-types";
-
-// import anime from "animejs";
-// import Popup from "@/components/common/Popup";
-// import { ProcessState } from "@/@types";
 
 export default defineComponent({
   setup() {
@@ -63,9 +58,7 @@ export default defineComponent({
     };
   },
   components: {
-    // UploadFileItem,
     DrawerFileItem,
-    // Popup,
   },
   data() {
     return {
@@ -152,29 +145,6 @@ export default defineComponent({
         }
       }
     },
-    /*     onDragEnter(event: Event) {
-      console.log("IN: ", event.target);
-      if (
-        event.target instanceof HTMLElement &&
-        this.dropZone instanceof HTMLElement
-      ) {
-        if (
-          this.dropZone?.contains(event.target) ||
-          this.dropZone == event.target
-        ) {
-        }
-      }
-    },
-    onDragLeave(event: Event) {
-      console.log("OUT: ", event.target);
-      if (
-        event.target instanceof HTMLElement &&
-        this.dropZone instanceof HTMLElement
-      ) {
-        if (this.dropZone == event.target) {
-        }
-      }
-    }, */
     openDrawer(event: Event, fileID: string) {
       event.stopImmediatePropagation();
       if (this.selectFileID != fileID) this.selectFileID = fileID;
@@ -187,6 +157,9 @@ export default defineComponent({
   mounted() {
     document.addEventListener("dragover", this.onDragOver);
     document.addEventListener("drop", this.onDrop);
+  },
+  beforeMount() {
+    this.showDrawer = false;
   },
   unmounted() {
     document.removeEventListener("dragover", this.onDragOver);
