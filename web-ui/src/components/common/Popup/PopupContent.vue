@@ -333,6 +333,7 @@ export default defineComponent({
 }
 .popup__body {
   padding: 0.5rem 1rem;
+  font-size: 1.4rem;
 }
 .popup-placement-top {
   padding-bottom: 1rem;

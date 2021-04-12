@@ -80,6 +80,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
   async [ActionTypes.HANDLER]({ state, getters, commit, dispatch }) {
     // Send next files
     const file = getters.UPLOAD__NextReadyFile;
+    console.log(file);
     if (file && file.upload) return file.upload();
 
     // Set processCacheState to avoid multi call api
@@ -92,6 +93,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
     });
   },
   async [ActionTypes.SEND_OPTIONS]({ state, getters, commit }) {
+    console.log("finish");
     const body: UploadJSONSend = {
       auth: getters.UPLOAD__Password.length < 4 ? false : true,
       password: getters.UPLOAD__Password,

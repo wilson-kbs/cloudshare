@@ -16,11 +16,7 @@
       :duration="1000"
     >
       <template v-slot:content>Copier!</template>
-      <span
-        class="clipboard-button"
-        data-clipboard-action="copy"
-        data-clipboard-target="#copy-content"
-      ></span>
+      <span class="clipboard-button" :data-clipboard-text="value"></span>
     </popup>
   </div>
 </template>

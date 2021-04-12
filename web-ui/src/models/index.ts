@@ -36,15 +36,15 @@ export class FileItem {
     this.size = fileSize;
   }
 
-  isReady(): boolean {
+  get isReady(): boolean {
     return this.processState.isReady;
   }
 
-  isRunning(): boolean {
+  get isRunning(): boolean {
     return this.processState.isRunning;
   }
 
-  isFinish(): boolean {
+  get isFinish(): boolean {
     return this.processState.isFinish;
   }
 
@@ -83,7 +83,7 @@ export class FileItem {
       upload.start();
     };
 
-    this.processState.value == "READY";
+    this.processState.value = "READY";
 
     this.upload = starter;
 

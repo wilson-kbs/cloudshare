@@ -1,8 +1,8 @@
 <template>
   <div class="ks-upload">
-    <div :class="['ks-upload-wrapper', { 'upload-running': startUpload }]">
-      <transition name="scale" v-on:after-leave="afterAnimate">
-        <div class="ks-upload-content" v-if="!startUpload">
+    <div :class="['ks-upload-wrapper', { 'upload-running': uploadIsStart }]">
+      <transition name="scale">
+        <div class="ks-upload-content" v-if="!uploadIsStart">
           <div class="ks-upload__header">
             <span class="header-title">Partage de fichiers</span>
           </div>
@@ -11,23 +11,33 @@
             <OptionsCard />
           </div>
           <div class="ks-upload__actions">
-            <KSButton :disable="filesListIsEmpty" @click="animateBeforStart"
-              >Partager</KSButton
+            <KSButton
+              class="send-upload"
+              :disable="filesListIsEmpty"
+              @click="animateBeforStart"
             >
+              Partager
+            </KSButton>
           </div>
         </div>
       </transition>
       <div
         v-if="showProgressBar"
-        class="progress-bar"
-        :style="{ width: `${prevProgress}%` }"
+        :class="[
+          'progress-bar',
+          { finish: successUpload },
+          { error: errorUpload },
+        ]"
+        :style="{ width: `calc(50px + ${prevProgress}%)` }"
       ></div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
+
+import anime from "animejs";
 
 import KSFileList from "./KSFileList.vue";
 import OptionsCard from "./OptionsCard.vue";
@@ -35,7 +45,7 @@ import KSButton from "@/components/common/KSButton.vue";
 
 import { UploadMutationTypes } from "@/store/modules/upload/mutation-types";
 
-import { ProcessState, ProcessStateValue, sleep } from "@/_utils";
+import { ProcessState, sleep } from "@/_utils";
 import { UploadActionTypes } from "@/store/modules/upload/action-types";
 
 export default defineComponent({
@@ -49,9 +59,12 @@ export default defineComponent({
   },
   data() {
     return {
-      startUpload: false,
+      uploadIsStart: false,
       showProgressBar: false,
       prevProgress: 0,
+      successUpload: false,
+      errorUpload: false,
+      animeInstanceWrapper: null as anime.AnimeInstance | null,
     };
   },
   computed: {
@@ -69,25 +82,50 @@ export default defineComponent({
     },
   },
   watch: {
-    progress(value: number) {
-      if (value > this.prevProgress) this.prevProgress += value;
+    async progress(value: number) {
+      if (this.processState.isRunning || this.processState.isFinish) {
+        if (value > this.prevProgress) this.prevProgress += value;
+        if (value == 100) {
+          await sleep(1000);
+          this.$nextTick(async () => {
+            this.successUpload = true;
+            await sleep(1000);
+            this.$emit("complete");
+          });
+        }
+      }
     },
     "processState.value"() {
-      if (this.processState.isFinish) this.$emit("complete");
+      if (this.processState.isError) {
+        this.errorUpload = true;
+      }
     },
   },
   methods: {
     animateBeforStart() {
       console.log("Start Anime Upload");
-      this.startUpload = true;
+      this.uploadIsStart = true;
+      this.$nextTick(() => this.animeInstanceWrapper?.play());
     },
-    async afterAnimate(e: any) {
+    startUpload(e?: any) {
       this.showProgressBar = true;
-      //await sleep(500);
       this.$nextTick(() =>
         this.$store.dispatch(UploadActionTypes.START_UPLOAD)
       );
     },
+  },
+  mounted() {
+    this.animeInstanceWrapper = anime({
+      targets: ".ks-upload-wrapper",
+      height: "50px",
+      delay: 300,
+      duration: 700,
+      autoplay: false,
+      easing: "linear",
+      complete: () => {
+        this.startUpload();
+      },
+    });
   },
 });
 </script>
@@ -124,11 +162,10 @@ export default defineComponent({
   border: 2px solid transparent;
   border-radius: 3rem;
   margin: auto;
-  transition: height 1s linear, border-color 0.1s linear;
+  transition: border-color 0.1s linear 0.5s;
+  overflow: hidden;
   &.upload-running {
-    height: 5rem;
     border-color: var(--color-border);
-    overflow: hidden;
   }
 }
 
@@ -161,19 +198,22 @@ export default defineComponent({
 .ks-upload__actions {
   display: flex;
   text-align: center;
-  height: 30%;
+  height: 20%;
   padding-top: 2.4rem;
+  & > .send-upload {
+    width: 70%;
+    margin: auto;
+  }
 }
 
 .progress-bar {
   position: absolute;
   top: 0;
-  left: 0;
+  left: -50px;
   height: 100%;
-  width: 0;
-  max-width: 100%;
   background-color: var(--color-primary);
-  transition: width 1s linear;
+  transition: width 1s linear, background-color 0.2s linear;
+  border-radius: 5rem;
 
   &.finish {
     background-color: var(--color-success);

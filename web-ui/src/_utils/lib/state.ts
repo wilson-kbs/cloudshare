@@ -7,10 +7,18 @@ export type ProcessStateValue =
   | "ERROR";
 
 export class ProcessState {
-  value: ProcessStateValue;
+  private _v: ProcessStateValue;
 
   constructor() {
-    this.value = "CREATED";
+    this._v = "CREATED";
+  }
+
+  get value() {
+    return this._v;
+  }
+
+  set value(v: ProcessStateValue) {
+    this._v = v;
   }
 
   get isCreated(): boolean {

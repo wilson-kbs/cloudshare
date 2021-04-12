@@ -1,6 +1,6 @@
 <template>
   <div>
-    <transition name="fade" mode="out-in">
+    <transition name="fade-slow" mode="out-in">
       <KSUpload v-if="!complete" @complete="complete = true" />
       <section class="download-url" v-else>
         <span class="title-section-dowwnload-url">Lien vers le partage</span>
@@ -38,4 +38,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.fade-slow-enter-active,
+.fade-slow-leave-active {
+  transition: all 1s ease;
+}
+
+.fade-slow-enter-from,
+.fade-slow-leave-to {
+  opacity: 0;
+}
 </style>
