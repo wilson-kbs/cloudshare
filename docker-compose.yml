@@ -60,8 +60,8 @@ services:
       - "traefik.http.routers.web_ui.rule=PathPrefix(`/`)"
       - "traefik.http.services.web_ui.loadbalancer.server.port=8080"
     depends_on:
-      - metadata_manager
-      - files_manager
+      - metadata-service
+      - files-service
 
   metadata-service:
     build: services/metadata
