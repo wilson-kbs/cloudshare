@@ -101,11 +101,22 @@ export default defineComponent({
     },
   },
   watch: {
-    async progress(value: number, odlValue: number) {
+    progress(value: number, odlValue: number) {
       if (this.processState.isRunning || this.processState.isFinish) {
         if (value > odlValue) {
-          await this.animeProgressBar(value, odlValue);
+          this.animeProgressBar(value, odlValue);
         }
+      }
+    },
+    progressBarOffsetWidht(newVal: number, oldVal: number) {
+      if (newVal >= 100 + this.progressBarOffsetLeft) {
+        sleep(1000).then(() => {
+          this.$nextTick(async () => {
+            this.successUpload = true;
+            await sleep(1000);
+            this.sendComplete();
+          });
+        });
       }
     },
   },
@@ -134,10 +145,10 @@ export default defineComponent({
         this.$store.dispatch(UploadActionTypes.START_UPLOAD);
       });
     },
-    async animeProgressBar(newVal: number, oldVal: number) {
+    animeProgressBar(newVal: number, oldVal: number) {
       console.log(newVal, oldVal);
       const diff = newVal - oldVal;
-      const PAS = diff / 2;
+      const PAS = diff / 3;
       const value = diff / PAS;
 
       for (let i = 0; i < PAS; i++) {
@@ -146,21 +157,17 @@ export default defineComponent({
           break;
         }
 
-        this.progressBarOffsetWidht += value;
-        if (this.progressBar instanceof HTMLElement) {
-          this.progressBar.style.width = `${this.progressBarOffsetWidht}%`;
-        }
-
-        await sleep(1000 / PAS);
+        sleep(1000 / PAS).then(() => {
+          this.progressBarOffsetWidht += value;
+          if (this.progressBar instanceof HTMLElement) {
+            this.progressBar.style.width = `${this.progressBarOffsetWidht}%`;
+          }
+        });
       }
-
-      if (newVal == 100) this.successUploadAndSendComplete();
     },
-    successUploadAndSendComplete() {
+    sendComplete() {
       if (this.processState.isFinish) {
-        this.$nextTick(async () => {
-          this.successUpload = true;
-          await sleep(1000);
+        this.$nextTick(() => {
           this.$emit("complete");
         });
       }
