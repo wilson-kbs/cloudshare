@@ -1,11 +1,11 @@
 <template>
-  <div class="download-card">
-    <div class="head-view">
-      <span class="title-view">Fichiers</span>
+  <div class="ks-download">
+    <div class="ks-download__header">
+      <span class="title">Fichiers</span>
       <button class="download-action" title="Télécharger tout"></button>
     </div>
-    <div class="boby-view">
-      <FilesView />
+    <div class="ks-download__body">
+      <KSFilesTable />
     </div>
   </div>
 </template>
@@ -14,11 +14,11 @@
 import { defineComponent } from "vue";
 import { formatFileSize } from "../common/utils";
 
-import FilesView from "./FilesView.vue";
+import KSFilesTable from "./KSFilesTable.vue";
 
 export default defineComponent({
   components: {
-    FilesView,
+    KSFilesTable,
   },
   setup() {
     return {};
@@ -32,7 +32,7 @@ export default defineComponent({
 @import "../../assets/styles/font-awesome/solid.scss";
 @import "../../assets/styles/font-awesome/regular.scss";
 
-.download-card {
+.ks-download {
   margin: auto;
   width: 100%;
   height: 100%;
@@ -42,7 +42,7 @@ export default defineComponent({
   max-width: 1200px;
 }
 
-.head-view {
+.ks-download__header {
   position: relative;
   padding: 1rem 1.5rem;
   border-bottom: 0.2rem solid var(--color-border);
@@ -53,7 +53,7 @@ export default defineComponent({
     box-shadow: none;
   }
 
-  & > .title-view {
+  & > .title {
     white-space: nowrap;
     font-size: 1.8rem;
     font-weight: 600;
@@ -63,7 +63,7 @@ export default defineComponent({
   }
 }
 
-.boby-view {
+.ks-download__body {
   align-self: center;
   height: 100%;
   width: 100%;
@@ -123,11 +123,11 @@ export default defineComponent({
 }
 
 @media screen and (min-width: 1200px) {
-  .head-view {
+  .ks-download__header {
     border-right: 0.1rem solid var(--color-border);
     border-left: 0.1rem solid var(--color-border);
   }
-  .boby-view {
+  .ks-download__body {
     border-left: 1px solid var(--color-border);
     border-right: 1px solid var(--color-border);
   }

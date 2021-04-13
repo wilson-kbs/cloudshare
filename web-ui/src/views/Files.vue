@@ -2,7 +2,7 @@
   <div>
     <Loader v-if="showLoader" />
     <div v-else-if="success" class="files-page">
-      <DownloadCard />
+      <KSDownload />
     </div>
     <Auth v-else-if="showAuth" @success="authSuccess" />
     <Error v-else :errorCode="fetchStatueCode" />
@@ -17,7 +17,7 @@ import { useRoute } from "vue-router";
 import { DownloadActionTypes } from "@/store/modules/download/action-types";
 import { DownloadMutationTypes } from "@/store/modules/download/mutation-types";
 
-import DownloadCard from "@/components/download/DownloadCard.vue";
+import KSDownload from "@/components/download/KSDownload.vue";
 import Loader from "@/components/common/Loader.vue";
 import Error from "@/components/common/Error.vue";
 import Auth from "@/components/AuthView.vue";
@@ -27,7 +27,7 @@ import { ProcessState } from "@/_utils";
 export default defineComponent({
   name: "Files",
   components: {
-    DownloadCard,
+    KSDownload,
     Loader,
     Error,
     Auth,

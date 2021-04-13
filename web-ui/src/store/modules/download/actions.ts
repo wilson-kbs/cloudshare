@@ -106,7 +106,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
       } else {
         const data = (await res.json()) as APIMetaResponse;
         commit(MutationTypes.ADD_FILES, data.files);
-        commit(MutationTypes.FETCH_STATE, "SUCCESS");
+        commit(MutationTypes.FETCH_STATE, "FINISH");
       }
     });
   },
