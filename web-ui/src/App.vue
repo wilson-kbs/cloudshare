@@ -1,9 +1,9 @@
 <template>
   <Nav />
-  <router-view class="view" v-slot="{ Component }">
+  <router-view v-slot="{ Component }">
     <template v-if="Component">
       <suspense>
-        <component :is="Component"></component>
+        <component class="view" :is="Component"></component>
         <template #fallback>
           <div>Loading...</div>
         </template>

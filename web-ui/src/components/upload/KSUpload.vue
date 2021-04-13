@@ -1,6 +1,13 @@
 <template>
   <div class="ks-upload">
-    <div :class="['ks-upload-wrapper', { 'upload-running': uploadIsStart }]">
+    <div
+      ref="uploadWrapper"
+      :class="[
+        'ks-upload-wrapper',
+        { running: uploadIsStart },
+        { error: errorUpload },
+      ]"
+    >
       <transition name="scale">
         <div class="ks-upload-content" v-if="!uploadIsStart">
           <div class="ks-upload__header">
@@ -23,12 +30,15 @@
       </transition>
       <div
         v-if="showProgressBar"
+        ref="progressBar"
         :class="[
           'progress-bar',
           { finish: successUpload },
           { error: errorUpload },
         ]"
-        :style="{ width: `calc(50px + ${prevProgress}%)` }"
+        :style="{
+          left: `-${progressBarOffsetLeft}%`,
+        }"
       ></div>
     </div>
   </div>
@@ -43,8 +53,6 @@ import KSFileList from "./KSFileList.vue";
 import OptionsCard from "./OptionsCard.vue";
 import KSButton from "@/components/common/KSButton.vue";
 
-import { UploadMutationTypes } from "@/store/modules/upload/mutation-types";
-
 import { ProcessState, sleep } from "@/_utils";
 import { UploadActionTypes } from "@/store/modules/upload/action-types";
 
@@ -55,15 +63,26 @@ export default defineComponent({
     KSButton,
   },
   setup() {
-    return {};
+    const progressBar = ref<HTMLElement>();
+    const uploadWrapper = ref<HTMLElement>();
+    return {
+      progressBar,
+      uploadWrapper,
+    };
   },
   data() {
     return {
       uploadIsStart: false,
       showProgressBar: false,
-      prevProgress: 0,
+      //#################
       successUpload: false,
       errorUpload: false,
+      //#################
+      progressBarOffsetWidht: 0,
+      progressBarIntervalTimerAnime: 0,
+      progressBarOffsetLeft: 10, // -(number)%
+      progressBarAnimeFinish: false,
+      //#################
       animeInstanceWrapper: null as anime.AnimeInstance | null,
     };
   },
@@ -82,50 +101,70 @@ export default defineComponent({
     },
   },
   watch: {
-    async progress(value: number) {
+    async progress(value: number, odlValue: number) {
       if (this.processState.isRunning || this.processState.isFinish) {
-        if (value > this.prevProgress) this.prevProgress += value;
-        if (value == 100) {
-          await sleep(1000);
-          this.$nextTick(async () => {
-            this.successUpload = true;
-            await sleep(1000);
-            this.$emit("complete");
-          });
+        if (value > odlValue) {
+          await this.animeProgressBar(value, odlValue);
         }
-      }
-    },
-    "processState.value"() {
-      if (this.processState.isError) {
-        this.errorUpload = true;
       }
     },
   },
   methods: {
     animateBeforStart() {
-      console.log("Start Anime Upload");
       this.uploadIsStart = true;
-      this.$nextTick(() => this.animeInstanceWrapper?.play());
+      this.$nextTick(() => {
+        anime({
+          targets: this.uploadWrapper,
+          height: "2rem",
+          delay: 450,
+          duration: 700,
+          easing: "linear",
+          complete: () => {
+            this.startUpload();
+          },
+        });
+      });
     },
     startUpload(e?: any) {
       this.showProgressBar = true;
-      this.$nextTick(() =>
-        this.$store.dispatch(UploadActionTypes.START_UPLOAD)
-      );
+      this.$nextTick(() => {
+        if (this.uploadWrapper instanceof HTMLElement) {
+          this.progressBarOffsetWidht = this.progressBarOffsetLeft;
+        }
+        this.$store.dispatch(UploadActionTypes.START_UPLOAD);
+      });
     },
-  },
-  mounted() {
-    this.animeInstanceWrapper = anime({
-      targets: ".ks-upload-wrapper",
-      height: "50px",
-      delay: 300,
-      duration: 700,
-      autoplay: false,
-      easing: "linear",
-      complete: () => {
-        this.startUpload();
-      },
-    });
+    async animeProgressBar(newVal: number, oldVal: number) {
+      console.log(newVal, oldVal);
+      const diff = newVal - oldVal;
+      const PAS = diff / 2;
+      const value = diff / PAS;
+
+      for (let i = 0; i < PAS; i++) {
+        if (this.processState.isError) {
+          this.errorUpload = true;
+          break;
+        }
+
+        this.progressBarOffsetWidht += value;
+        if (this.progressBar instanceof HTMLElement) {
+          this.progressBar.style.width = `${this.progressBarOffsetWidht}%`;
+        }
+
+        await sleep(1000 / PAS);
+      }
+
+      if (newVal == 100) this.successUploadAndSendComplete();
+    },
+    successUploadAndSendComplete() {
+      if (this.processState.isFinish) {
+        this.$nextTick(async () => {
+          this.successUpload = true;
+          await sleep(1000);
+          this.$emit("complete");
+        });
+      }
+    },
   },
 });
 </script>
@@ -138,15 +177,14 @@ export default defineComponent({
 
 .scale-enter-from,
 .scale-leave-to {
-  transform: scale(0.3);
+  transform: scale(0.9);
   opacity: 0;
 }
 .ks-upload {
   display: flex;
+  flex-direction: column;
   width: 100%;
-  max-width: 40rem;
   height: 100%;
-  max-height: 71rem;
   margin: auto;
   transition: height 0.5s ease;
 
@@ -156,31 +194,37 @@ export default defineComponent({
   }
 }
 .ks-upload-wrapper {
+  border-top: 0.1rem solid var(--color-border);
   position: relative;
   height: 100%;
   width: 100%;
-  border: 2px solid transparent;
-  border-radius: 3rem;
-  margin: auto;
-  transition: border-color 0.1s linear 0.5s;
+  transition: width 0.7s 0.45s, border 0.5s 0.5s, border-radius 0.5s 0.7s;
+  transition-timing-function: linear;
   overflow: hidden;
-  &.upload-running {
-    border-color: var(--color-border);
+  margin: auto;
+  padding: 1rem 2rem;
+
+  &.running {
+    // padding: 0;
+    width: 90%;
+    border: 2px solid var(--color-border);
+    border-radius: 3rem;
+  }
+
+  &.error {
+    border-color: var(--color-error);
   }
 }
 
 .ks-upload-content {
-  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 2.4rem;
+
   height: 100%;
-  width: 100%;
 }
 .ks-upload__header {
   padding: 1rem 0 2rem 0;
-  width: 100%;
   text-align: center;
 
   & .header-title {
@@ -209,10 +253,9 @@ export default defineComponent({
 .progress-bar {
   position: absolute;
   top: 0;
-  left: -50px;
   height: 100%;
   background-color: var(--color-primary);
-  transition: width 1s linear, background-color 0.2s linear;
+  transition: width 0.5s linear, background-color 0.2s linear;
   border-radius: 5rem;
 
   &.finish {
@@ -224,18 +267,21 @@ export default defineComponent({
   }
 }
 
-.download-url {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90vw;
-  max-width: 40rem;
-}
+@media screen and (min-height: 800px) and (min-width: 600px) {
+  .ks-upload {
+    max-width: 40rem;
+    max-height: 71rem;
+  }
 
-@media screen and (max-height: 800px) and (max-width: 600px) {
   .ks-upload-wrapper {
-    border-top: 0.1rem solid var(--color-border);
+    transition: width 0.7s 0.45s, border 0.2s 0.5s;
+    width: 100% !important;
+    border: 2px solid var(--color-border);
+    border-radius: 3rem;
+  }
+
+  .ks-upload-content {
+    padding: 2.4rem;
   }
 }
 </style>

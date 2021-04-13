@@ -5,7 +5,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { CreateUploadDto } from "@/validator/CreateUploadDto";
+import { CreateUploadDto } from '@/validator/CreateUploadDto';
 import { DatabaseService } from '@database/service';
 import { UploadService } from './upload.service';
 
@@ -18,6 +18,7 @@ export class UploadController {
 
   @Post()
   async addUpload(@Body() createUploadDto: CreateUploadDto): Promise<String> {
+    //throw new HttpException('Internal Error', HttpStatus.INTERNAL_SERVER_ERROR);
     if (createUploadDto.auth && !createUploadDto.password) {
       throw new HttpException('Password is empty', HttpStatus.BAD_REQUEST);
     }
