@@ -24,11 +24,7 @@
 <script lang="ts">
 import { defineComponent, nextTick, reactive } from "vue";
 import { Placement, Trigger } from "./type";
-import {
-  requestTimeout,
-  removeRequestTimeout,
-  GetTiggerElement,
-} from "./_utils";
+import { requestTimeout, removeRequestTimeout } from "./_utils";
 
 interface Align {
   x: "left" | "right" | "center";

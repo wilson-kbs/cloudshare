@@ -40,7 +40,7 @@
         </td>
         <td class="filesize">
           <span class="size">
-            {{ formatFileSize(file.size) }}
+            {{ file.size.formatToStringFileSize() }}
           </span>
         </td>
       </tr>
@@ -48,7 +48,7 @@
     <tfoot>
       <tr class="summary">
         <td class="filename">{{ files.length }} fichiers</td>
-        <td class="filesize">{{ formatFileSize(totalSizeFiles) }}</td>
+        <td class="filesize">{{ totalSizeFiles.formatToStringFileSize() }}</td>
       </tr>
     </tfoot>
   </table>
@@ -62,10 +62,8 @@
 <script lang="ts">
 import { useStore } from "@/store";
 import { defineComponent, ref } from "vue";
-import { formatFileSize } from "../common/utils";
 
 import DrawerFileItem from "@/components/common/DawerFileItem.vue";
-import { MetaFile } from "@/@types";
 import { FileItem } from "@/models";
 
 export default defineComponent({
@@ -104,7 +102,6 @@ export default defineComponent({
     },
   },
   methods: {
-    formatFileSize,
     openDrawer(fileID: string) {
       this.selectFileID = fileID;
       this.setHighlightFocusItem(fileID);

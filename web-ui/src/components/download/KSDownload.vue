@@ -12,7 +12,6 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { formatFileSize } from "../common/utils";
 
 import KSFilesTable from "./KSFilesTable.vue";
 

@@ -1,7 +1,7 @@
 import { MutationTree } from "vuex";
 
 import type { State } from "./state";
-import type { MetaFile, StatueCode } from "@/@types";
+import type { StatueCode } from "@/@types";
 import type { ProcessStateValue } from "@/_utils";
 
 import { DownloadMutationTypes as MutationTypes } from "./mutation-types";

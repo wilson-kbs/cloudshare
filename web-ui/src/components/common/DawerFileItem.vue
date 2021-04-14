@@ -44,11 +44,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, nextTick } from "vue";
+import { defineComponent } from "vue";
 
-import { formatFileSize } from "@/components/common/utils";
 import { UploadMutationTypes } from "@/store/modules/upload/mutation-types";
-import { MetaFile } from "@/@types";
 
 type FileInfo = {
   id: string;
@@ -86,7 +84,6 @@ export default defineComponent({
     },
   },
   methods: {
-    formatFileSize,
     escapePress(event: KeyboardEvent) {
       if (event.code == "Escape") {
         this.$emit("close");
@@ -110,21 +107,22 @@ export default defineComponent({
         let fileItem = this.$store.state.upload.files.find(
           (item) => item.id == this.fileID
         );
-        this.fileInfo = {
-          id: fileItem!.id,
-          name: fileItem!.name,
-          size: this.formatFileSize(fileItem!.size),
-        };
+        if (fileItem)
+          this.fileInfo = {
+            id: fileItem.id,
+            name: fileItem.name,
+            size: fileItem.size.formatToStringFileSize(),
+          };
       } else {
         let fileItem = this.$store.state.download.files.find(
           (item) => item.id == this.fileID
         );
-
-        this.fileInfo = {
-          id: fileItem!.id,
-          name: fileItem!.name,
-          size: this.formatFileSize(fileItem!.size),
-        };
+        if (fileItem)
+          this.fileInfo = {
+            id: fileItem.id,
+            name: fileItem.name,
+            size: fileItem.size.formatToStringFileSize(),
+          };
       }
     },
   },
