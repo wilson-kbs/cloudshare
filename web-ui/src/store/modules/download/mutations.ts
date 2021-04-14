@@ -5,11 +5,12 @@ import type { MetaFile, StatueCode } from "@/@types";
 import type { ProcessStateValue } from "@/_utils";
 
 import { DownloadMutationTypes as MutationTypes } from "./mutation-types";
+import { FileItem } from "@/models";
 
 export type Mutations<S = State> = {
   [MutationTypes.FETCH_STATE](state: S, payload: ProcessStateValue): void;
-  [MutationTypes.ADD_FILE](state: S, payload: MetaFile): void;
-  [MutationTypes.ADD_FILES](state: S, payload: Array<MetaFile>): void;
+  [MutationTypes.ADD_FILE](state: S, payload: FileItem): void;
+  [MutationTypes.ADD_FILES](state: S, payload: Array<FileItem>): void;
   [MutationTypes.UPLOAD_ID](state: S, payload: string): void;
   [MutationTypes.HTTP_CODE](state: S, payload: StatueCode): void;
   [MutationTypes.AUTH_REQUIRED](state: S, payload: boolean): void;

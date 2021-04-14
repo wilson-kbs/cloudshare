@@ -1,4 +1,5 @@
 import { MetaFile, StatueCode } from "@/@types";
+import { FileItem } from "@/models";
 import { ProcessState as AuthState, ProcessState } from "@/_utils";
 
 type CredState = {
@@ -14,7 +15,7 @@ interface FetcherState {
 
 export type State = {
   uploadID: string;
-  files: Array<MetaFile>;
+  files: Array<FileItem>;
   fetch: FetcherState;
   auth: CredState;
 };

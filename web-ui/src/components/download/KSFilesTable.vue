@@ -64,9 +64,9 @@ import { useStore } from "@/store";
 import { defineComponent, ref } from "vue";
 import { formatFileSize } from "../common/utils";
 
-import FileItem from "./FileItem.vue";
 import DrawerFileItem from "@/components/common/DawerFileItem.vue";
 import { MetaFile } from "@/@types";
+import { FileItem } from "@/models";
 
 export default defineComponent({
   components: {
@@ -83,10 +83,8 @@ export default defineComponent({
       { value: "Taille", col: "size" as "name" | "size" },
     ];
 
-    const files: Array<MetaFile> = this.$store.state.download.files.sortMetaFiles(
-      sortV,
-      sortD
-    );
+    const files = this.$store.state.download.files.sortFileItemByName();
+
     return {
       selectFileID: "",
       showDrawer: false,
@@ -99,7 +97,7 @@ export default defineComponent({
   },
   computed: {
     totalSizeFiles(): number {
-      const allSizeFiles = this.files.map((item: MetaFile) => item.size);
+      const allSizeFiles = this.files.map((item: FileItem) => item.size);
       return allSizeFiles.reduce(
         (prevSize: number, nextSize: number) => prevSize + nextSize
       );
@@ -135,10 +133,10 @@ export default defineComponent({
         this.sortByValue = sort;
         this.sortDirection = "up";
       }
-      this.files = this.$store.state.download.files.sortMetaFiles(
-        this.sortByValue,
-        this.sortDirection
-      );
+      if (sort == "name")
+        this.files = this.files.sortFileItemByName(this.sortDirection);
+      else if (sort == "size")
+        this.files = this.files.sortFileItemBySize(this.sortDirection);
     },
   },
 });

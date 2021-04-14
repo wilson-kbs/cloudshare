@@ -11,6 +11,7 @@ import { Getters } from "./getters";
 
 import type { APIMetaResponse, APIAuthResponse, StatueCode } from "@/@types";
 import { Config } from "@/config";
+import { FileItem } from "@/models";
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations>(
@@ -105,7 +106,11 @@ export const actions: ActionTree<State, RootState> & Actions = {
         commit(MutationTypes.FETCH_STATE, "ERROR");
       } else {
         const data = (await res.json()) as APIMetaResponse;
-        commit(MutationTypes.ADD_FILES, data.files);
+        data.files.forEach((item) => {
+          const file = new FileItem({ id: item.id, mode: "DOWNLOAD" });
+          file.setMeta(item.name, item.size);
+          commit(MutationTypes.ADD_FILE, file);
+        });
         commit(MutationTypes.FETCH_STATE, "FINISH");
       }
     });

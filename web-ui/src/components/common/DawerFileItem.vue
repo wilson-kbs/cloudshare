@@ -117,7 +117,7 @@ export default defineComponent({
         };
       } else {
         let fileItem = this.$store.state.download.files.find(
-          (item: MetaFile) => item.id == this.fileID
+          (item) => item.id == this.fileID
         );
 
         this.fileInfo = {

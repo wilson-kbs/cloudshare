@@ -1,10 +1,12 @@
 import { MetaFile } from "@/@types";
+import { FileItem } from "./models";
+import { sortFileItem } from "./_utils";
 export {};
 
 declare global {
   interface Array<T> {
-    sortMetaFiles(by: "name" | "size", sort: "up" | "down"): Array<MetaFile>;
-    sortBySizeMetaFiles(sort: "up" | "down"): void;
+    sortFileItemByName(direction?: "up" | "down"): Array<FileItem>;
+    sortFileItemBySize(direction?: "up" | "down"): Array<FileItem>;
   }
   interface Number {
     formatToStringFileSize(to?: string): string;
@@ -18,59 +20,29 @@ const Size = {
   KB: 2 ** 10,
 };
 
-if (!Array.prototype.sortMetaFiles) {
-  Array.prototype.sortMetaFiles = function (by, sort): Array<MetaFile> {
-    const files: Array<MetaFile> = [];
-
-    let count = 0;
-    for (const nextFile of this as Array<MetaFile>) {
-      count++;
-      if (files.length == 0) {
-        files.push(nextFile);
-
-        continue;
-      }
-      let char = 0;
-
-      for (let i = 0; i < files.length; i++) {
-        const prevFile = files[i];
-
-        let a: string | number = "";
-        let b: string | number = "";
-
-        if (by == "name") {
-          a = prevFile.name[char].toLowerCase();
-          b = nextFile.name[char].toLowerCase();
-        } else if (by == "size") {
-          a = prevFile.size;
-          b = nextFile.size;
-        }
-
-        if (sort == "up") {
-          if (a > b) {
-            files.splice(i, 0, nextFile);
-            break;
-          }
-        } else if (sort == "down") {
-          if (a < b) {
-            console.log(files.slice());
-            files.splice(i, 0, nextFile);
-            break;
-          }
-        }
-
-        if (i == files.length - 1) {
-          files.push(nextFile);
-          break;
-        }
-
-        if (a == b) {
-          char++;
-          --i;
-        }
+if (!Array.prototype.sortFileItemByName) {
+  Array.prototype.sortFileItemByName = function (
+    direction = "up"
+  ): Array<FileItem> {
+    for (const item of this) {
+      if (!(item instanceof FileItem)) {
+        return this;
       }
     }
-    return files;
+    return sortFileItem(this, { index: "name", direction });
+  };
+}
+
+if (!Array.prototype.sortFileItemBySize) {
+  Array.prototype.sortFileItemBySize = function (
+    direction = "up"
+  ): Array<FileItem> {
+    for (const item of this) {
+      if (!(item instanceof FileItem)) {
+        return this;
+      }
+    }
+    return sortFileItem(this, { index: "size", direction });
   };
 }
 
