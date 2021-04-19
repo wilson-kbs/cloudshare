@@ -1,4 +1,4 @@
-module github.com/wilson-kbs/cloudshare/services/files_manager
+module github.com/wilson-kbs/cloudshare/services/files
 
 go 1.15
 

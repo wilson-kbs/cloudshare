@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/wilson-kbs/cloudshare/services/files_manager/modules/grpc/meta"
-	"github.com/wilson-kbs/cloudshare/services/files_manager/modules/settings"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/grpc/meta"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/setting"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -47,7 +47,7 @@ var (
 func (s *MetaClient) Conn() error {
 	var conn *grpc.ClientConn
 
-	conn, err := grpc.Dial(settings.Getconf().GetMetadataMSgRPCAdress()+":"+settings.Getconf().GetMetadataMSgRPCPort(), grpc.WithInsecure())
+	conn, err := grpc.Dial(setting.GRPCMetaServiceURL, grpc.WithInsecure())
 	if err != nil {
 		log.Println("Error: did not connect:", err)
 		return err

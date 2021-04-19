@@ -1,4 +1,4 @@
-package routes
+package controllers
 
 import (
 	"archive/zip" //
@@ -11,14 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wilson-kbs/cloudshare/services/files_manager/modules/grpc"
-	"github.com/wilson-kbs/cloudshare/services/files_manager/modules/storage"
-	"github.com/wilson-kbs/cloudshare/services/files_manager/modules/utils"
-	//"github.com/gorilla/mux"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/grpc"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/storage"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/utils"
 )
 
-// DownloadHandler :
-func DownloadHandler(w http.ResponseWriter, r *http.Request) {
+// Download : Controller handler
+func (c CSController) Download(w http.ResponseWriter, r *http.Request) {
 	queryMap := r.URL.Query()
 
 	uploadID := queryMap.Get("u")
@@ -109,18 +108,19 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 			utils.Render(w, http.StatusInternalServerError)
 			return
 		}
-		uploadStore := storage.UploadStore()
 
-		if !uploadStore.FileExist(fileID) {
+		if !c.stores.Files.IsExist(fileID) {
 			utils.Render(w, http.StatusNotFound)
 		}
 
-		src, err := uploadStore.FileRead(fileID)
+		src, err := c.stores.Files.Open(fileID)
 
 		if err != nil {
 			utils.Render(w, http.StatusInternalServerError)
 			return
 		}
+
+		defer src.Close()
 
 		w.Header().Set("content-type", metaFile.Type)
 
@@ -146,7 +146,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, file := range filesStruct.Files {
-		if !storage.UploadStore().FileExist(file.Id) {
+		if !storage.ObjectStorage.Files.IsExist(file.Id) {
 			utils.Render(w, http.StatusInternalServerError)
 			return
 		}
@@ -164,14 +164,12 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	for _, file := range filesStruct.Files {
 
-		uploadStore := storage.UploadStore()
-
-		src, err := uploadStore.FileRead(file.Id)
+		src, err := c.stores.Files.Open(file.Id)
 		if err != nil {
 			log.Println(err)
 		}
 
-		stat, err := uploadStore.FileGetStat(file.Id)
+		stat, err := c.stores.Files.Stat(file.Id)
 		if err != nil {
 			log.Println(err)
 		}
@@ -212,6 +210,8 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 				log.Panic(err)
 			}
 		}
+
+		src.Close()
 	}
 
 	if err := buffZip.Close(); err != nil {

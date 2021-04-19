@@ -7,17 +7,34 @@ import (
 
 	"golang.org/x/net/http2"
 
-	"github.com/wilson-kbs/cloudshare/services/files_manager/modules/settings"
-	"github.com/wilson-kbs/cloudshare/services/files_manager/modules/web/routes"
+	"github.com/gorilla/mux"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/setting"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/web/controllers"
 )
+
+// getHandler Web Router
+func getRouter() *mux.Router {
+	var router = mux.NewRouter()
+
+	baseRoute := router.PathPrefix(setting.WEBBasePath).Subrouter()
+
+	controller := controllers.NewControler()
+
+	cacheHandler := controller.GetCacheHander()
+
+	baseRoute.PathPrefix("/cache/").Handler(cacheHandler)
+
+	baseRoute.Path("/d").HandlerFunc(controller.Download).Methods("GET")
+
+	return router
+}
 
 // StartServer exec web server
 func StartServer() {
-	handler := routes.GetHandlerWithRoutes()
 
 	httpServer := http.Server{
-		Handler:      handler,
-		Addr:         settings.Getconf().GetWebAddress() + ":" + settings.Getconf().GetWebPort(),
+		Handler:      getRouter(),
+		Addr:         setting.LocalURL,
 		WriteTimeout: 3 * time.Hour,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -27,7 +44,7 @@ func StartServer() {
 		log.Fatalf("Error: %v", err)
 	}
 
-	log.Printf("Listen Web Server: http://%v:%v%v", settings.Getconf().GetWebAddress(), settings.Getconf().GetWebPort(), settings.Getconf().GetWebBasePath())
+	log.Printf("Listen Web Server: http://%v:%v%v", setting.HTTPAddr, setting.HTTPPort, setting.WEBBasePath)
 
 	log.Fatal(httpServer.ListenAndServe())
 }

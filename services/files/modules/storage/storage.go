@@ -1,214 +1,80 @@
 package storage
 
 import (
-	"encoding/json"
-	"io/ioutil"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 
-	"github.com/wilson-kbs/cloudshare/services/files_manager/modules/settings"
-
-	"golang.org/x/sys/unix"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/setting"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/storage/cache"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/storage/files"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/util"
 )
 
-// Upload implement functions for manager upload files
-type Upload struct {
-	path string
+type LocalStorage struct {
+	Files *files.Store
+	Cache *cache.Store
 }
 
-// Cache implement function for manager cache files
-type Cache struct {
-	path string
-}
-
-const (
-	uploadRelativePathStore = "upload"
-	cacheRelativePathStore  = "cache"
-)
-
-var (
-	uploadStore Upload
-	cacheStore  Cache
-)
-
-func init() {
-	path := ifIsNotExistMakeDirectory(uploadRelativePathStore)
-	if !dirIsWritable(path) {
-		log.Fatalf("Error: %v is not writable", path)
-	}
-	uploadStore = Upload{path}
-
-	path = ifIsNotExistMakeDirectory(cacheRelativePathStore)
-	if !dirIsWritable(path) {
-		log.Fatalf("Error: %v directory not writable", path)
-	}
-	cacheStore = Cache{path}
-}
-
-// UploadStore return upload manager files
-func UploadStore() *Upload {
-	return &uploadStore
-}
-
-// CacheStore return cache manager files
-func CacheStore() *Cache {
-	return &cacheStore
-}
-
-// GetPath return path from uploadStore
-func (s *Upload) GetPath() string {
-	return s.path
-}
-
-// GetPath return path from cacheStore
-func (s *Cache) GetPath() string {
-	return s.path
-}
-
-// FileMoveFromCache move File from cache directory to upload Directory
-func (s *Upload) FileMoveFromCache(oldID, newID string) error {
-	oldPath := filepath.Join(cacheStore.path, oldID)
-	newPath := filepath.Join(uploadStore.path, newID)
-	if err := os.Rename(oldPath, newPath); err != nil {
-		log.Panic(err)
-	}
-	return nil
-}
-
-// FileRead : Open File
-func (s *Upload) FileRead(id string) (*os.File, error) {
-	return os.Open(filepath.Join(s.path, id))
-
-}
-
-// FileReadFromBytes get a byte array of the file in the file Store
-func (s *Upload) FileReadFromBytes(id string) ([]byte, error) {
-	return ioutil.ReadFile(filepath.Join(s.path, id))
-
-}
-
-// FileGetStat get stat file in File Storepath
-func (s *Upload) FileGetStat(id string) (os.FileInfo, error) {
-	return os.Stat(filepath.Join(s.path, id))
-}
-
-// FileExist check if the file exists in File Store
-func (s *Upload) FileExist(id string) bool {
-	if _, err := os.Stat(filepath.Join(s.path, id)); err != nil {
-		return false
-	}
-	return true
-}
-
-// RemoveFile remove file on uploadStore
-func (s *Upload) RemoveFile(id string) error {
-	return deleteFileFromStore("upload", id)
-}
-
-// File struct
-type File struct {
+// MetaDataFile defines the data of a file
+type MetaDataFile struct {
 	Name         string
 	Type         string
 	Size         int64
 	LastModified int64
 }
 
-type filedata struct {
-	Size     int64     `json:"Size"`
-	Metadata *metadata `json:"MetaData"`
+var (
+	ObjectStorage = &LocalStorage{}
+)
+
+const (
+	filesStoreName = "files"
+	cacheStoreName = "cache"
+)
+
+func init() {
+	ObjectStorage = NewLocalStore(setting.StoragePath)
 }
 
-type metadata struct {
-	Name         string `json:"filename"`
-	Type         string `json:"filetype"`
-	LastModified string `json:"lastmodified"`
+func NewLocalStore(path string) *LocalStorage {
+	filesStorePath := filepath.Join(path, filesStoreName)
+	cacheStorePath := filepath.Join(path, cacheStoreName)
+
+	for _, dir := range []string{filesStorePath, cacheStorePath} {
+		// if not exist create the directory
+		if isExist, _ := util.IsExist(dir); !isExist {
+			_ = os.Mkdir(dir, 0664)
+		}
+		// if is not directory, print error and exit program
+		if isDir, _ := util.IsDir(dir); !isDir {
+			log.Fatalf("Error: %s this is not directory", dir)
+		}
+		// if this directory is not writable, print error and exit programm
+		if !util.IsDirWritable(dir) {
+			log.Fatalf("Error: %s this directory is not writable", dir)
+		}
+	}
+
+	return &LocalStorage{
+		Files: files.NewStore(filesStorePath),
+		Cache: cache.NewStore(cacheStorePath),
+	}
+
 }
 
-// GetMetaFile return meta file info
-func (s *Cache) GetMetaFile(id string) (*File, error) {
-	data := filedata{}
-	src, err := s.getReaderFileInfo(id)
-	if err != nil {
-		return nil, err
+func (l *LocalStorage) CreateFileFromCache(cachefileID, newfileID string) (err error) {
+	cacheFilePath := l.Cache.PathFile(cachefileID)
+	if !l.Cache.IsExist(cachefileID) {
+		err = fmt.Errorf("Error: %s this file is not exist", cacheFilePath)
+		log.Printf("Error: %s", err.Error())
+		return
 	}
-	err = json.Unmarshal(src, &data)
-	if err != nil {
-		log.Println(err)
-		return nil, err
+	newFilePath := l.Files.PathFile(newfileID)
+	if err = os.Rename(cacheFilePath, newFilePath); err != nil {
+		log.Printf("Error: %s", err.Error())
+		return
 	}
-	file := &File{}
-	file.Name = data.Metadata.Name
-	file.Type = data.Metadata.Type
-	file.Size = data.Size
-	lastmodified, err := strconv.ParseInt(data.Metadata.LastModified, 10, 64)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	file.LastModified = lastmodified
-
-	return file, nil
-}
-
-// getReaderFileInfo return reader from file info
-func (s *Cache) getReaderFileInfo(id string) ([]byte, error) {
-	fileReader, err := ioutil.ReadFile(filepath.Join(s.path, id+".info"))
-	if err != nil {
-		log.Panic(err)
-		return nil, err
-	}
-	return fileReader, nil
-}
-
-// FileExist : Get if file exist
-func (s *Cache) FileExist(id string) bool {
-	if _, err := os.Stat(filepath.Join(s.path, id)); err != nil {
-		return false
-	}
-	if _, err := os.Stat(filepath.Join(s.path, id+".info")); err != nil {
-		return false
-	}
-	return true
-}
-
-// RemoveFileInfo : Remove file info
-func (s *Cache) RemoveFileInfo(id string) error {
-	return deleteFileFromStore("cache", id+".info")
-}
-
-// RemoveFile : Remove file info
-func (s *Cache) RemoveFile(id string) error {
-	return deleteFileFromStore("cache", id)
-}
-
-func ifIsNotExistMakeDirectory(path string) string {
-	dir := filepath.Join(settings.Getconf().GetStorePath(), path)
-	if _, err := os.Stat(dir); err != nil {
-		_ = os.Mkdir(dir, 0700)
-	}
-	if stat, _ := os.Stat(dir); !stat.IsDir() {
-		log.Fatalf("Error: %v is not directory", dir)
-	}
-	return dir
-}
-
-func dirIsWritable(path string) bool {
-	return unix.Access(path, unix.W_OK) == nil
-}
-
-// deleteFileFromStore : deletion according to store
-func deleteFileFromStore(store, fileName string) error {
-	var path string
-	switch store {
-	case "cache":
-		path = filepath.Join(cacheStore.path, fileName)
-	case "upload":
-		path = filepath.Join(uploadStore.path, fileName)
-	}
-	if err := os.Remove(path); err != nil {
-		return err
-	}
-	return nil
+	return
 }

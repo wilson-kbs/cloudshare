@@ -4,7 +4,7 @@ package meta;
 
 import "google/protobuf/wrappers.proto";
 
-option go_package = "github.com/wilson-kbs/cloudshare/services/files_manager/modules/grpc/meta";
+option go_package = "github.com/wilson-kbs/cloudshare/services/files/modules/grpc/meta";
 
 service MetaService {
   rpc GetMetaUpload(UploadId) returns (MetaUpload) {}

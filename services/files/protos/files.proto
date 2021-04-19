@@ -4,7 +4,7 @@ package files;
 
 import "google/protobuf/wrappers.proto";
 
-option go_package = "github.com/wilson-kbs/cloudshare/services/files_manager/modules/grpc/files";
+option go_package = "github.com/wilson-kbs/cloudshare/services/files/modules/grpc/files";
 
 service FilesService {
   rpc FilesExist (StoreFilesId) returns (google.protobuf.BoolValue) {}
