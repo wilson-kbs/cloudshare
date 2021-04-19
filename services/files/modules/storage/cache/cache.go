@@ -6,13 +6,16 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
+	"github.com/wilson-kbs/cloudshare/services/files/modules/cron"
 	"github.com/wilson-kbs/cloudshare/services/files/modules/util"
 )
 
 // Store is a struct which implements access to cached files
 type Store struct {
-	dir string // Directory path of cache store
+	dir       string // Directory path of cache store
+	aliveTime time.Duration
 }
 
 const (
@@ -31,7 +34,11 @@ type JSONFileInfo struct {
 
 // NewStore returns Store with path
 func NewStore(path string) *Store {
-	return &Store{dir: path}
+	duration, _ := time.ParseDuration("6h")
+	store := &Store{dir: path, aliveTime: duration}
+	defer store.Clean()
+	cron.Add("@hourly", store.Clean)
+	return store
 }
 
 // PathStore return absolute path of cache store

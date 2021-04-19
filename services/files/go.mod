@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/golang/protobuf v1.4.3
 	github.com/gorilla/mux v1.8.0
+	github.com/robfig/cron v1.2.0
 	github.com/tus/tusd v1.5.1
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	golang.org/x/sys v0.0.0-20210305034016-7844c3c200c3
