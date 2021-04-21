@@ -14,7 +14,7 @@ async function bootstrap() {
     options: {
       url: '0.0.0.0:' + process.env.GRPC_LISTEN_PORT,
       package: 'meta',
-      protoPath: join(__dirname, '../proto/meta.proto'),
+      protoPath: join(__dirname, '../protos/meta.proto'),
     },
   });
 

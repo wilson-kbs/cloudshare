@@ -102,17 +102,15 @@ services:
     command: air -c .air.toml
     volumes:
       - "./services/files:/usr/src/app"
-      - "${STORAGE_PATH}/files:/data"
+      - "${STORAGE_PATH}:/data"
     working_dir: /usr/src/app
     ports:
       - $FILES_SERVICES_API_PORT
       - $GRPC_DEFAULT_LISTEN_PORT
     environment:
       - TZ=Europe/Paris
-      - CLOUDSHARE_METADATA_MANAGER_ADDRESS=$METADATA_SERVICES_HOSTNAME
-      - CLOUDSHARE_WEB_PORT=$FILES_SERVICES_API_PORT
-      - CLOUDSHARE_WEB_BASEPATH=$API_BASEPATH
-      - GRPC_LISTEN_PORT=$GRPC_DEFAULT_LISTEN_PORT
+      - CLOUDSHARE_GRPC_META_SERVICE_URL=$METADATA_SERVICES_HOSTNAME:$GRPC_DEFAULT_LISTEN_PORT
+      - CLOUDSHARE_WEB_BASE_PATH=$API_BASEPATH
     labels:
       - "traefik.http.routers.${FILES_SERVICES_HOSTNAME}.rule=PathPrefix(`${API_BASEPATH}/d`, `${API_BASEPATH}/cache`)"
       - "traefik.http.services.${FILES_SERVICES_HOSTNAME}.loadbalancer.server.port=3000"

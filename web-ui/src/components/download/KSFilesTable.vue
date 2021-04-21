@@ -136,6 +136,9 @@ export default defineComponent({
         this.files = this.files.sortFileItemBySize(this.sortDirection);
     },
   },
+  mounted() {
+    console.log(this.files);
+  },
 });
 </script>
 

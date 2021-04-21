@@ -10,6 +10,9 @@ export namespace grpc_files {
   export interface FileId {
     id: string;
   }
+  export interface ItemID {
+    id: string;
+  }
 
   export interface StoreFilesId {
     store: 'CACHE' | 'UPLOAD';
@@ -37,6 +40,9 @@ export namespace grpc_files {
     deleteFiles(data: StoreFilesId): Observable<BoolValue>;
     moveFilesToUploadStore(data: MoveTo): Observable<BoolValue>;
     getMetaCacheFile(data: FileId): Observable<MetaFile>;
+  }
+  export interface FilesStore {
+    isExist(data: ItemID): Observable<BoolValue>;
   }
 }
 

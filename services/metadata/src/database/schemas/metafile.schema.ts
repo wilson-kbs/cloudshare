@@ -23,7 +23,6 @@ export class MetaFile {
   lastModified: number;
 
   public setSize(size: Int | number = 0) {
-    console.log(typeof size, size);
     if (typeof size == 'number') {
       this.size = size;
       return;

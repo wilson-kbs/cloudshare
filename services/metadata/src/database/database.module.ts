@@ -16,7 +16,7 @@ const gRPCConnectionDataStore = ClientsModule.register([
     options: {
       url: `${process.env.CLOUDSHARE_FILES_MANAGER_ADDRESS}:${process.env.GRPC_LISTEN_PORT}`,
       package: 'files',
-      protoPath: join(__dirname, '../../proto/files.proto'),
+      protoPath: join(__dirname, '../../protos/files.proto'),
       loader: {
         keepCase: true,
       },

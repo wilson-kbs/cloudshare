@@ -1,6 +1,7 @@
 package files
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 
@@ -45,7 +46,8 @@ func (s *Store) Stat(path string) (os.FileInfo, error) {
 
 // IsExist file in store
 func (s *Store) IsExist(path string) bool {
-	if state, _ := util.IsExist(s.PathFile(path)); !state {
+	if state, err := util.IsExist(s.PathFile(path)); !state {
+		log.Println(err)
 		return false
 	}
 	return true

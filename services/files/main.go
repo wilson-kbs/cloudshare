@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/wilson-kbs/cloudshare/services/files/modules/grpc"
+	grpcServer "github.com/wilson-kbs/cloudshare/services/files/modules/grpc/server"
 	"github.com/wilson-kbs/cloudshare/services/files/modules/web"
 )
 
 func main() {
 	// Start GRPC Server
-	go grpc.StartServer()
+	go grpcServer.Start()
 
 	// Start HTTP Server
 	web.StartServer()

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
 	"path"
@@ -24,10 +25,13 @@ func (c *CSController) GetCacheHander() http.Handler {
 	storeTUS.UseIn(composer)
 
 	config := tusd.Config{
-		BasePath:      tusdURL,
-		StoreComposer: composer,
-		//RespectForwardedHeaders: true,
+		BasePath:                tusdURL,
+		StoreComposer:           composer,
+		Logger:                  &log.Logger{},
+		RespectForwardedHeaders: true,
 	}
+
+	config.Logger.SetOutput(ioutil.Discard)
 
 	handler, err := tusd.NewHandler(config)
 	if err != nil {

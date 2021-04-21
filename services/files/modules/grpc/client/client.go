@@ -1,10 +1,10 @@
-package grpc
+package client
 
 import (
 	"context"
 	"log"
 
-	"github.com/wilson-kbs/cloudshare/services/files/modules/grpc/meta"
+	"github.com/wilson-kbs/cloudshare/services/files/modules/grpc/pb/meta"
 	"github.com/wilson-kbs/cloudshare/services/files/modules/setting"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

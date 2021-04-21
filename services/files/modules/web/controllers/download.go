@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wilson-kbs/cloudshare/services/files/modules/grpc"
+	grpcMetaClient "github.com/wilson-kbs/cloudshare/services/files/modules/grpc/client"
 	"github.com/wilson-kbs/cloudshare/services/files/modules/storage"
 	"github.com/wilson-kbs/cloudshare/services/files/modules/utils"
 )
@@ -27,7 +27,7 @@ func (c CSController) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metaService, err := grpc.GetMetaClientConn()
+	metaService, err := grpcMetaClient.GetMetaClientConn()
 
 	if err != nil {
 		utils.Render(w, http.StatusInternalServerError)
@@ -38,7 +38,7 @@ func (c CSController) Download(w http.ResponseWriter, r *http.Request) {
 	metaUpload, err := metaService.GetMetaUpload(uploadID)
 
 	if err != nil {
-		e, ok := err.(*grpc.Error)
+		e, ok := err.(*grpcMetaClient.Error)
 
 		if ok {
 			utils.Render(w, e.HTTPCode())
@@ -98,7 +98,7 @@ func (c CSController) Download(w http.ResponseWriter, r *http.Request) {
 		metaFile, err := metaService.GetUploadMetaFile(uploadID, fileID)
 
 		if err != nil {
-			e, ok := err.(*grpc.Error)
+			e, ok := err.(*grpcMetaClient.Error)
 
 			if ok {
 				utils.Render(w, e.HTTPCode())

@@ -22,7 +22,7 @@ export class UploadController {
     if (createUploadDto.auth && !createUploadDto.password) {
       throw new HttpException('Password is empty', HttpStatus.BAD_REQUEST);
     }
-    const uploadId = await this.uploadService.create(createUploadDto);
+    const uploadId = await this.uploadService.createSharing(createUploadDto);
     if (uploadId === '' || !uploadId) {
       throw new HttpException(
         'Internal Error',

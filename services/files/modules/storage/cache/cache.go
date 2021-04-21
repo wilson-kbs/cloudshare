@@ -14,12 +14,12 @@ import (
 
 // Store is a struct which implements access to cached files
 type Store struct {
-	dir       string // Directory path of cache store
-	aliveTime time.Duration
+	dir       string        // Directory path of cache store
+	aliveTime time.Duration // duration alive time of file
 }
 
 const (
-	fileInfoExtention = ".info"
+	fileInfoExtention = ".info" // if extention of Tus file info
 )
 
 // JSONFileInfo define fileinfo json in cache store
@@ -79,6 +79,7 @@ func (s *Store) IsExist(path string) bool {
 	return true
 }
 
+// FileInfo returns Tus file info
 func (s *Store) FileInfo(path string) (fileInfo *JSONFileInfo, err error) {
 	filePath := s.PathFile(s.GetNameFileInfo(path))
 
