@@ -18,7 +18,7 @@ services:
     networks:
       default:
         aliases:
-          - $MONGO_HOSTNAME
+          - cloudshare_database
 
   rvpx:
     container_name: cloudshare_rvpx
@@ -38,13 +38,14 @@ services:
       context: web-ui
       dockerfile: Dockerfile.production
       args:
-        TITLE: $TITLE_APP
+        TITLE: $WEB_TITLE
         API_URL: $API_URL
         API_BASEPATH: $API_BASEPATH
     restart: unless-stopped
     ports:
       - "80"
     labels:
+      - "traefik.http.routers.meta-srv.rule=Host(`${WEB_URL}`)
       - "traefik.http.routers.web.rule=PathPrefix(`/`)"
       - "traefik.http.services.web.loadbalancer.server.port=80"
 
@@ -60,25 +61,26 @@ services:
     depends_on:
       - db
     ports:
-      - $METADATA_SERVICES_API_PORT
-      - $GRPC_DEFAULT_LISTEN_PORT
+      - 3000
+      - 9000
     environment:
       - MONGO_DB=$MONGO_DB
-      - MONGO_HOSTNAME=$MONGO_HOSTNAME
-      - MONGO_PORT=$MONGO_PORT
+      - MONGO_HOSTNAME=cloudshare_database
       - MONGO_INITDB_USERNAME=$MONGO_INITDB_USERNAME
       - MONGO_INITDB_PASSWORD=$MONGO_INITDB_PASSWORD
+      - MONGO_PORT=27017
       - CLOUDSHARE_WEB_BASEPATH=$API_BASEPATH
-      - CLOUDSHARE_WEB_PORT=$METADATA_SERVICES_API_PORT
-      - CLOUDSHARE_FILES_MANAGER_ADDRESS=$FILES_SERVICES_HOSTNAME
-      - GRPC_LISTEN_PORT=$GRPC_DEFAULT_LISTEN_PORT
+      - CLOUDSHARE_WEB_PORT=3000
+      - CLOUDSHARE_FILES_MANAGER_ADDRESS=$cloudshare_files-srv
+      - GRPC_LISTEN_PORT=9000
     labels:
+      - "traefik.http.routers.meta-srv.rule=Host(`${API_URL}`)
       - "traefik.http.routers.meta-srv.rule=PathPrefix(`${API_BASEPATH}/upload`, `${API_BASEPATH}/meta`, `${API_BASEPATH}/auth`)"
       - "traefik.http.services.meta-srv.loadbalancer.server.port=3000"
     networks:
       default:
         aliases:
-          - $METADATA_SERVICES_HOSTNAME
+          - cloudshare_meta-srv
 
   files-srv:
     container_name: cloudshare_files-srv
@@ -94,12 +96,13 @@ services:
       - $FILES_SERVICES_API_PORT
       - $GRPC_DEFAULT_LISTEN_PORT
     environment:
-      - CLOUDSHARE_GRPC_META_SERVICE_URL=$METADATA_SERVICES_HOSTNAME:$GRPC_DEFAULT_LISTEN_PORT
+      - CLOUDSHARE_GRPC_META_SERVICE_URL=cloudshare_meta-srv:9000
       - CLOUDSHARE_WEB_BASE_PATH=$API_BASEPATH
     labels:
+      - "traefik.http.routers.meta-srv.rule=Host(`${API_URL}`)
       - "traefik.http.routers.files-srv.rule=PathPrefix(`${API_BASEPATH}/d`, `${API_BASEPATH}/cache`)"
       - "traefik.http.services.files-srv.loadbalancer.server.port=3000"
     networks:
       default:
         aliases:
-          - $FILES_SERVICES_HOSTNAME
+          - cloudshare_files-srv
