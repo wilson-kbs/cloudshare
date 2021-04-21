@@ -48,10 +48,12 @@ export class FileItem {
     return this.processState.isFinish;
   }
 
+  url = new URL(Config.TUS_PATH, Config.API_URL);
+
   generateUploader(file: File) {
     const store = useStore();
     const upload = new Upload(file, {
-      endpoint: Config.TUS_PATH,
+      endpoint: this.url.toString(),
       retryDelays: [0, 3000, 5000, 10000, 20000],
       metadata: {
         filename: file.name,

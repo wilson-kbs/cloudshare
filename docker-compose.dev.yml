@@ -1,9 +1,7 @@
 version: "3.8"
 services:
-  db:
-    container_name: cloudshare_database
-    image: cloudshare_database
-    build: database
+  mongo:
+    image: mongo
     restart: unless-stopped
     environment:
       - MONGO_INITDB_DATABASE=$MONGO_DB
@@ -12,57 +10,73 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=$MONGO_INITDB_ROOT_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD=$MONGO_INITDB_ROOT_PASSWORD
     ports:
-      - "27017"
+      - "27017:27017"
     volumes:
+      - "./database/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro"
       - "${STORAGE_PATH}/database:/data/db"
     networks:
       default:
         aliases:
           - $MONGO_HOSTNAME
 
-  rvpx:
-    container_name: cloudshare_rvpx
+  mongo-express:
+    image: mongo-express
+    restart: unless-stopped
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=$MONGO_HOSTNAME
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=$MONGO_INITDB_ROOT_USERNAME
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=$MONGO_INITDB_ROOT_PASSWORD
+    depends_on:
+      - mongo
+
+  reverse-proxy:
     image: traefik:v2.2
     command: --api.insecure=true --api.dashboard=true --providers.docker
-    restart: unless-stopped
     ports:
       - $LISTEN_PORT:80
       - $DASHBORD_LISTEN_PORT:8080
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
-  web:
-    container_name: cloudshare_web
-    image: cloudshare_web:latest
-    build:
-      context: web-ui
-      dockerfile: Dockerfile.production
-      args:
-        TITLE: $TITLE_APP
-        API_URL: $API_URL
-        API_BASEPATH: $API_BASEPATH
+  web-ui:
+    image: "node:14.15.3-buster"
     restart: unless-stopped
+    command: npm run serve
+    volumes:
+      - "./web-ui:/usr/src/app"
+    working_dir: /usr/src/app
     ports:
-      - "80"
+      - "8080"
+    environment:
+      - TZ=Europe/Paris
+      - VUE_APP_API_TITLE=$TITLE_APP
+      - VUE_APP_API_BASEPATH=$API_BASEPATH
+      - VUE_APP_API_URL=$API_URL
     labels:
-      - "traefik.http.routers.web.rule=PathPrefix(`/`)"
-      - "traefik.http.services.web.loadbalancer.server.port=80"
+      - "traefik.http.routers.web_ui.rule=PathPrefix(`/`)"
+      - "traefik.http.services.web_ui.loadbalancer.server.port=8080"
+    depends_on:
+      - metadata-service
+      - files-service
 
-  meta-srv:
-    container_name: cloudshare_meta-srv
-    image: cloudshare_meta-srv:latest
+  metadata-service:
     build:
       context: services/metadata
-      target: prod
+      target: dev
     restart: unless-stopped
-    volumes:
-      - /usr/src/app/node_modules
     depends_on:
-      - db
+      - mongo
+    volumes:
+      - "./services/metadata:/usr/src/app:rw"
+    working_dir: /usr/src/app
     ports:
       - $METADATA_SERVICES_API_PORT
       - $GRPC_DEFAULT_LISTEN_PORT
     environment:
+      - TZ=Europe/Paris
+      - CHOKIDAR_USEPOLLING=true
       - MONGO_DB=$MONGO_DB
       - MONGO_HOSTNAME=$MONGO_HOSTNAME
       - MONGO_PORT=$MONGO_PORT
@@ -73,32 +87,33 @@ services:
       - CLOUDSHARE_FILES_MANAGER_ADDRESS=$FILES_SERVICES_HOSTNAME
       - GRPC_LISTEN_PORT=$GRPC_DEFAULT_LISTEN_PORT
     labels:
-      - "traefik.http.routers.meta-srv.rule=PathPrefix(`${API_BASEPATH}/upload`, `${API_BASEPATH}/meta`, `${API_BASEPATH}/auth`)"
-      - "traefik.http.services.meta-srv.loadbalancer.server.port=3000"
+      - "traefik.http.routers.${METADATA_SERVICES_HOSTNAME}.rule=PathPrefix(`${API_BASEPATH}/upload`, `${API_BASEPATH}/meta`, `${API_BASEPATH}/auth`)"
+      - "traefik.http.services.${METADATA_SERVICES_HOSTNAME}.loadbalancer.server.port=3000"
     networks:
       default:
         aliases:
           - $METADATA_SERVICES_HOSTNAME
 
-  files-srv:
-    container_name: cloudshare_files-srv
-    image: cloudshare_files-srv:latest
+  files-service:
     build:
       context: services/files
-      dockerfile: Dockerfile.production
+      target: dev
     restart: unless-stopped
+    command: air -c .air.toml
     volumes:
+      - "./services/files:/usr/src/app"
       - "${STORAGE_PATH}:/data"
-      - /usr/src/app/node_modules
+    working_dir: /usr/src/app
     ports:
       - $FILES_SERVICES_API_PORT
       - $GRPC_DEFAULT_LISTEN_PORT
     environment:
+      - TZ=Europe/Paris
       - CLOUDSHARE_GRPC_META_SERVICE_URL=$METADATA_SERVICES_HOSTNAME:$GRPC_DEFAULT_LISTEN_PORT
       - CLOUDSHARE_WEB_BASE_PATH=$API_BASEPATH
     labels:
-      - "traefik.http.routers.files-srv.rule=PathPrefix(`${API_BASEPATH}/d`, `${API_BASEPATH}/cache`)"
-      - "traefik.http.services.files-srv.loadbalancer.server.port=3000"
+      - "traefik.http.routers.${FILES_SERVICES_HOSTNAME}.rule=PathPrefix(`${API_BASEPATH}/d`, `${API_BASEPATH}/cache`)"
+      - "traefik.http.services.${FILES_SERVICES_HOSTNAME}.loadbalancer.server.port=3000"
     networks:
       default:
         aliases:

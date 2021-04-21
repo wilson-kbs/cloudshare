@@ -1,4 +1,5 @@
 export const Config = {
+  API_URL: process.env.VUE_APP_API_URL,
   API_BASEPATH: process.env.VUE_APP_API_BASEPATH,
   TUS_PATH: `${process.env.VUE_APP_API_BASEPATH}/cache/`,
   UPLOAD_PATH: `${process.env.VUE_APP_API_BASEPATH}/upload`,

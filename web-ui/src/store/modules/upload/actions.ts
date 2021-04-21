@@ -109,10 +109,12 @@ export const actions: ActionTree<State, RootState> & Actions = {
       return response;
     }
 
+    const url = new URL(Config.UPLOAD_PATH, Config.API_URL);
+
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
 
-    const data = await fetch(Config.UPLOAD_PATH, {
+    const data = await fetch(url.toString(), {
       method: "POST",
       body: JSON.stringify(body),
       headers,

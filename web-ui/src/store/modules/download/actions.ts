@@ -48,7 +48,7 @@ export interface Actions {
 export const actions: ActionTree<State, RootState> & Actions = {
   async [ActionTypes.GET_AUTH]({ state, commit }, password) {
     commit(MutationTypes.AUTH_STATE, "RUNNING");
-    const url = new URL(Config.AUTH_PATH, window.location.origin);
+    const url = new URL(Config.AUTH_PATH, Config.API_URL);
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
 
@@ -79,7 +79,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
   },
   async [ActionTypes.FETCH_METADADTA]({ state, getters, commit }, filesID) {
     commit(MutationTypes.FETCH_STATE, "RUNNING");
-    const url = new URL(Config.METADATA_PATH, window.location.origin);
+    const url = new URL(Config.METADATA_PATH, Config.API_URL);
 
     url.searchParams.append("u", state.uploadID);
     if (filesID) url.searchParams.append("f", filesID);
