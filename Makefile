@@ -1,48 +1,53 @@
 args="$(filter-out $@,$(MAKECMDGOALS))"
-build:
-	docker-compose build --no-cache --force-rm
-	docker image prune -f --filter label=stage=builder
 
-prod:
-	docker-compose build --force-rm
-	docker image prune -f --filter label=stage=builder
-	docker-compose up -d
-
-start:
-	docker-compose up -d
+### DEVELOPMENT
+start: 
+	docker-compose --env-file .env.dev up -d
 
 stop:
-	docker-compose down
+	docker-compose --env-file .env.dev down
 
 restart:
-	docker-compose restart $(call args)
-
-rm:
-	docker-compose rm
+	docker-compose --env-file .env.dev restart $(call args)
 
 log:
 	docker-compose logs -f $(call args)
 
 logs:
 	docker-compose logs -f
+
+rm:
+	docker-compose rm
+
+### PRODUCTION
+build:
+	docker-compose build --no-cache --force-rm
+	docker image prune -f --filter label=stage=builder
+
+prod:
+	docker-compose -f docker-compose.prod.yml build --force-rm
+	docker image prune -f --filter label=stage=builder
+	docker-compose -f docker-compose.prod.yml up -d
+
+
+start_prod:
+	docker-compose -f docker-compose.prod.yml up -d
+
+
+stop_prod:
+	docker-compose -f docker-compose.prod.yml down
+
+
+restart_prod:
+	docker-compose -f docker-compose.prod.yml restart
+
+log_prod:
+	docker-compose -f docker-compose.prod.yml logs -f $(call args)
+
+
+logs_prod:
+	docker-compose -f docker-compose.prod.yml logs -f
 	
-dev_start:
-	docker-compose -f docker-compose.dev.yml --env-file ./config/.env.dev --profile dev up -d
-
-dev_logs:
-	docker-compose -f docker-compose.dev.yml --env-file ./config/.env.dev --profile dev logs -f $(call args)
-
-dev_full-logs:
-	docker-compose -f docker-compose.dev.yml --env-file ./config/.env.dev --profile dev logs -f
-
-dev_reset:
-	docker-compose -f docker-compose.dev.yml --env-file ./config/.env.dev rm
-
-dev_stop:
-	docker-compose -f docker-compose.dev.yml --env-file ./config/.env.dev down
-
-dev_restart:
-	docker-compose -f docker-compose.dev.yml --env-file ./config/.env.dev --profile dev restart $(call args)
 
 
 %:      # thanks to chakrit

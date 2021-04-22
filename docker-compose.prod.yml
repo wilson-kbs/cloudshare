@@ -1,0 +1,108 @@
+version: "3.8"
+services:
+  db:
+    container_name: cloudshare_database
+    image: cloudshare_database
+    build: database
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=$MONGO_DB
+      - MONGO_INITDB_USERNAME=$MONGO_INITDB_USERNAME
+      - MONGO_INITDB_PASSWORD=$MONGO_INITDB_PASSWORD
+      - MONGO_INITDB_ROOT_USERNAME=$MONGO_INITDB_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_INITDB_ROOT_PASSWORD
+    ports:
+      - "27017"
+    volumes:
+      - "${STORAGE_PATH}/database:/data/db"
+    networks:
+      default:
+        aliases:
+          - cloudshare_database
+
+  rvpx:
+    container_name: cloudshare_rvpx
+    image: traefik:v2.2
+    command: --api.insecure=true --api.dashboard=true --providers.docker
+    restart: unless-stopped
+    ports:
+      - $LISTEN_PORT:80
+      - $DASHBORD_LISTEN_PORT:8080
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  front:
+    container_name: cloudshare_front
+    image: cloudshare_front:latest
+    build:
+      context: frontend
+      dockerfile: Dockerfile.production
+      args:
+        TITLE: $WEB_TITLE
+        API_URL: $API_URL
+        API_BASEPATH: $API_BASEPATH
+    restart: unless-stopped
+    ports:
+      - "80"
+    labels:
+      - "traefik.http.routers.front.rule=Host(`${WEB_URL}`)
+      - "traefik.http.routers.front.rule=PathPrefix(`/`)"
+      - "traefik.http.services.front.loadbalancer.server.port=80"
+
+  meta-srv:
+    container_name: cloudshare_meta-srv
+    image: cloudshare_meta-srv:latest
+    build:
+      context: services/meta
+      target: prod
+    restart: unless-stopped
+    volumes:
+      - /usr/src/app/node_modules
+    depends_on:
+      - db
+    ports:
+      - 3000
+      - 9000
+    environment:
+      - MONGO_DB=$MONGO_DB
+      - MONGO_HOSTNAME=cloudshare_database
+      - MONGO_INITDB_USERNAME=$MONGO_INITDB_USERNAME
+      - MONGO_INITDB_PASSWORD=$MONGO_INITDB_PASSWORD
+      - MONGO_PORT=27017
+      - CLOUDSHARE_WEB_BASEPATH=$API_BASEPATH
+      - CLOUDSHARE_WEB_PORT=3000
+      - CLOUDSHARE_FILES_MANAGER_ADDRESS=$cloudshare_files-srv
+      - GRPC_LISTEN_PORT=9000
+    labels:
+      - "traefik.http.routers.meta-srv.rule=Host(`${API_URL}`)
+      - "traefik.http.routers.meta-srv.rule=PathPrefix(`${API_BASEPATH}/upload`, `${API_BASEPATH}/meta`, `${API_BASEPATH}/auth`)"
+      - "traefik.http.services.meta-srv.loadbalancer.server.port=3000"
+    networks:
+      default:
+        aliases:
+          - cloudshare_meta-srv
+
+  files-srv:
+    container_name: cloudshare_files-srv
+    image: cloudshare_files-srv:latest
+    build:
+      context: services/files
+      dockerfile: Dockerfile.production
+    restart: unless-stopped
+    volumes:
+      - "${STORAGE_PATH}:/data"
+      - /usr/src/app/node_modules
+    ports:
+      - $FILES_SERVICES_API_PORT
+      - $GRPC_DEFAULT_LISTEN_PORT
+    environment:
+      - CLOUDSHARE_GRPC_META_SERVICE_URL=cloudshare_meta-srv:9000
+      - CLOUDSHARE_WEB_BASE_PATH=$API_BASEPATH
+    labels:
+      - "traefik.http.routers.files-srv.rule=Host(`${API_URL}`)
+      - "traefik.http.routers.files-srv.rule=PathPrefix(`${API_BASEPATH}/d`, `${API_BASEPATH}/cache`)"
+      - "traefik.http.services.files-srv.loadbalancer.server.port=3000"
+    networks:
+      default:
+        aliases:
+          - cloudshare_files-srv
