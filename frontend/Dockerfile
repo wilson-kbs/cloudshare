@@ -1,5 +1,6 @@
 ## PRODUCTION
-FROM node:lts-alpine as web-ui_builder
+FROM node:lts-alpine3.13 as web-ui_builder
+LABEL app_name=kabaliserv_cloudshare
 LABEL stage=builder
 ARG TITLE
 ARG API_URL
@@ -15,6 +16,10 @@ RUN npm run build
 
 
 FROM nginx:stable-alpine as prod
+ARG VERSION
+LABEL app_name=kabaliserv_cloudshare
+LABEL stage=prod
+LABEL version=${VERSION}
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=web-ui_builder /app/dist /usr/share/nginx/html
 EXPOSE 80
