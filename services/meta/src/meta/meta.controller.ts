@@ -124,6 +124,8 @@ export class MetaController {
 
   @GrpcMethod('MetaService', 'TokenIsValid')
   tokenIsValid(data: grpc_meta.TokenCred): grpc_meta.BoolValue {
-    return { value: this.metaservice.validAuth(data.token, data.uploadId) };
+    console.log(data);
+
+    return { value: this.metaservice.validToken(data.token, data.uploadId) };
   }
 }

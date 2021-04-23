@@ -69,6 +69,7 @@ export default defineComponent({
   width: 100%;
   box-sizing: border-box;
 }
+
 .expire-option--title {
   font-size: 1.4rem;
   padding-bottom: 1rem;
@@ -86,7 +87,7 @@ export default defineComponent({
   margin-top: 1rem;
   border-radius: 5rem;
   box-sizing: border-box;
-  overflow: hidden;
+  //overflow: hidden;
 }
 
 .expire-option-item {
@@ -124,6 +125,10 @@ export default defineComponent({
   & input:hover + label,
   & input:checked + label {
     opacity: 1;
+  }
+
+  & input:focus + label {
+    box-shadow: 0 0 7px var(--color-primary);
   }
 
   & input:checked + label {

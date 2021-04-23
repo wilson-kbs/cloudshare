@@ -20,7 +20,7 @@
           <div class="ks-upload__actions">
             <KSButton
               class="send-upload"
-              :disable="filesListIsEmpty"
+              :disable="!isDownloadAllow"
               @click="animateBeforStart"
             >
               Partager
@@ -98,6 +98,13 @@ export default defineComponent({
         (this.$store.state.upload.bytesUploaded * 100) /
         this.$store.getters.UPLOAD__GetSizeOfAllFiles
       );
+    },
+    isDownloadAllow() {
+      const a = this.$store.getters.UPLOAD__FilesLength !== 0;
+      const b =
+        this.$store.state.upload.maxSizeFiles >
+        this.$store.getters.UPLOAD__GetSizeOfAllFiles;
+      return a && b;
     },
   },
   watch: {

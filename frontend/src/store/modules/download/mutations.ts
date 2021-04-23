@@ -16,6 +16,7 @@ export type Mutations<S = State> = {
   [MutationTypes.AUTH_REQUIRED](state: S, payload: boolean): void;
   [MutationTypes.AUTH_STATE](state: S, payload: ProcessStateValue): void;
   [MutationTypes.AUTH_TOKEN](state: S, payload: string): void;
+  [MutationTypes.DIRECT_DOWNLOAD_MODE](state: S, payload: boolean): void;
 };
 
 export const mutations: MutationTree<State> & Mutations = {
@@ -44,5 +45,8 @@ export const mutations: MutationTree<State> & Mutations = {
   },
   [MutationTypes.AUTH_TOKEN](state, token) {
     state.auth.token = token;
+  },
+  [MutationTypes.DIRECT_DOWNLOAD_MODE](state, value) {
+    state.directDownloadMode = value;
   },
 };

@@ -14,6 +14,7 @@ interface FetcherState {
 
 export type State = {
   uploadID: string;
+  directDownloadMode: boolean;
   files: Array<FileItem>;
   fetch: FetcherState;
   auth: CredState;
@@ -21,6 +22,7 @@ export type State = {
 
 export const state: State = {
   uploadID: "",
+  directDownloadMode: false,
   files: [],
   fetch: {
     state: new ProcessState(),

@@ -1,5 +1,6 @@
 import { ProcessState } from "@/_utils";
 import { FileItem } from "@/models";
+import { Size } from "@/globals-CS";
 
 export interface UploadOptions {
   expiration: number;
@@ -21,12 +22,14 @@ export type State = {
   bytesUploaded: number;
   files: Array<FileItem>;
   maxFiles: number;
+  maxSizeFiles: number;
   options: UploadOptions;
 };
 
 export const state: State = {
   files: [],
   maxFiles: 5,
+  maxSizeFiles: 10 * Size.GB,
   options: {
     expiration: 0,
     password: "",

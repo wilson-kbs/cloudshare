@@ -70,3 +70,12 @@ func (k *KSController) redirectOrSendError(c *gin.Context, httpCodeOrRedirectMod
 		k.redirectToWEBFront(c, redirectMode)
 	}
 }
+
+func (k *KSController) sendErrorOrRedirectToFrontForDownload(c *gin.Context, httpCode int) {
+	reqTrigger := c.GetHeader("KSCS-Request-Trigger")
+	if reqTrigger == ajaxRequestTrigger {
+		k.sendError(c, httpCode)
+	} else {
+		k.redirectToWEBFront(c, qModeValueDownload)
+	}
+}

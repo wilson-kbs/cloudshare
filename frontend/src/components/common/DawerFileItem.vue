@@ -32,7 +32,11 @@
               >
                 Supprimer
               </button>
-              <button class="file-item-action-download" v-else>
+              <button
+                class="file-item-action-download"
+                v-else
+                @click="downloadFile"
+              >
                 Télécharger
               </button>
             </div>
@@ -47,6 +51,7 @@
 import { defineComponent } from "vue";
 
 import { UploadMutationTypes } from "@/store/modules/upload/mutation-types";
+import { DownloadActionTypes } from "@/store/modules/download/action-types";
 
 type FileInfo = {
   id: string;
@@ -124,6 +129,9 @@ export default defineComponent({
             size: fileItem.size.formatToStringFileSize(),
           };
       }
+    },
+    downloadFile() {
+      this.$store.dispatch(DownloadActionTypes.GET_FILE, this.fileInfo.id);
     },
   },
   watch: {
@@ -263,31 +271,39 @@ export default defineComponent({
     cursor: pointer;
     outline: none;
     background-color: var(--color-main-background);
+    transition-property: background-color, color, opacity;
+    transition-duration: 0.1s;
+    transition-timing-function: linear;
+    border: none;
   }
   & .file-item-action-remove {
-    color: #dc3545;
-    border: 2.5px solid #dc3545;
+    color: white;
+    // border: 2.5px solid var(--color-error);
+    background-color: var(--color-error);
 
     &:hover,
     &:focus {
-      color: white;
-      background-color: #dc3545;
+      opacity: 0.7;
+      // color: white;
+      // background-color: var(--color-error);
     }
     &:focus {
-      box-shadow: 0 0 7px #ba2c3a;
+      box-shadow: 0 0 7px 2px var(--color-error);
     }
   }
   & .file-item-action-download {
-    color: var(--color-primary);
-    border: 2.5px solid var(--color-primary);
+    color: white;
+    // border: 2.5px solid var(--color-primary);
+    background-color: var(--color-primary);
 
     &:hover,
     &:focus {
-      color: white;
-      background-color: var(--color-primary);
+      // color: var(--color-primary);
+      // background-color: transparent;
+      opacity: 0.7;
     }
     &:focus {
-      box-shadow: 0 0 7px #ba2c3a;
+      box-shadow: 0 0 7px 2px var(--color-primary);
     }
   }
 }

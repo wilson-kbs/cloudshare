@@ -101,8 +101,9 @@ func (k KSController) Download(c *gin.Context) {
 		} else {
 			token = c.Query(qTokenKey)
 		}
+		log.Println(token)
 		if token == "" {
-			k.redirectOrSendError(c, http.StatusUnauthorized)
+			k.sendErrorOrRedirectToFrontForDownload(c, http.StatusUnauthorized)
 			return
 		}
 		isValidToken, err := rpc.TokenIsValid(uploadID, token)
@@ -112,8 +113,10 @@ func (k KSController) Download(c *gin.Context) {
 			return
 		}
 
+		log.Println("is ok token:", isValidToken)
+
 		if !isValidToken {
-			k.redirectOrSendError(c, http.StatusUnauthorized)
+			k.sendErrorOrRedirectToFrontForDownload(c, http.StatusUnauthorized)
 			return
 		}
 	}
@@ -203,6 +206,7 @@ func (k *KSController) sendZipFile(c *gin.Context) {
 		}
 		if len(uploadMetaFiles.Files) == 1 {
 			fileID := uploadMetaFiles.Files[0].Id
+			log.Println(fileID)
 			k.sendFile(c, fileID)
 			return
 		}

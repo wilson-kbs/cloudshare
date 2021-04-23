@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-const Size = {
+export const Size = {
   TB: 2 ** 40,
   GB: 2 ** 30,
   MB: 2 ** 20,

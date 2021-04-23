@@ -7,7 +7,12 @@
       </span>
     </div>
     <div class="filelist__body">
-      <div ref="dropZone" class="drop-zone" @click="openBrowserFiles">
+      <div
+        tabindex="0"
+        ref="dropZone"
+        class="drop-zone"
+        @click="openBrowserFiles"
+      >
         <span class="placeholder" v-if="filesIsEmpty">
           Deposer vos fichers ici
           <div>ou cliquez</div>
@@ -22,7 +27,7 @@
       </div>
     </div>
     <div class="filelist__footer">
-      <span class="files-size">
+      <span :class="['files-size', { error: sizeAllFiles > maxSizeFiles }]">
         {{ sizeAllFiles.formatToStringFileSize() }} / 10 Go
       </span>
     </div>
@@ -64,6 +69,7 @@ export default defineComponent({
     return {
       showDrawer: false,
       selectFileID: "",
+      maxSizeFiles: this.$store.state.upload.maxSizeFiles,
     };
   },
   computed: {
@@ -78,6 +84,11 @@ export default defineComponent({
     },
     filesIsEmpty() {
       return this.$store.state.upload.files.length == 0;
+    },
+  },
+  watch: {
+    sizeAllFiles(size: number) {
+      console.log(size);
     },
   },
   methods: {
@@ -210,6 +221,10 @@ export default defineComponent({
   .files-size {
     font-size: 1.5rem;
     opacity: 0.6;
+
+    &.error {
+      color: var(--color-error);
+    }
   }
 }
 
@@ -223,6 +238,7 @@ export default defineComponent({
   padding: 1.5rem 2rem;
   border: 2px solid var(--color-border);
   cursor: pointer;
+  outline: none;
 
   .placeholder {
     width: 70%;
@@ -232,7 +248,8 @@ export default defineComponent({
     opacity: 0.7;
   }
 
-  &:hover {
+  &:hover,
+  &:focus {
     border-color: var(--color-primary);
 
     .placeholder {

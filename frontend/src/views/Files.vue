@@ -1,11 +1,11 @@
 <template>
   <div>
-    <Loader v-if="showLoader" />
-    <div v-else-if="success" class="files-page">
+    <Loader v-if="showLoaderView" />
+    <div v-else-if="showDownloadView" class="files-page">
       <KSDownload />
     </div>
-    <Auth v-else-if="showAuth" @success="authSuccess" />
-    <Error v-else :errorCode="fetchStatueCode" />
+    <Auth v-else-if="showAuthView" @success="authSucccess" />
+    <Error v-else-if="showErrorView" :errorCode="fetchStatueCode" />
   </div>
 </template>
 
@@ -40,23 +40,44 @@ export default defineComponent({
     if (typeof route.query.u == "string")
       store.commit(DownloadMutationTypes.UPLOAD_ID, route.query.u);
 
+    // Get if sharing required auth
+    store.dispatch(DownloadActionTypes.AUTH_IS_REQUIRED);
+
     // Get File ID if register on url params
     let fileID: string | undefined;
     if (typeof route.query.f == "string") fileID = route.query.f;
 
-    function fetchMetadata() {
-      store.dispatch(DownloadActionTypes.FETCH_METADADTA, fileID);
+    // Get Mode of Request
+    let mode: string | undefined;
+    if (typeof route.query.mode == "string") {
+      mode = route.query.mode;
+      store.commit(
+        DownloadMutationTypes.DIRECT_DOWNLOAD_MODE,
+        mode == "download"
+      );
     }
+    const isModeDownloadDirect = mode == "download";
 
-    fetchMetadata();
+    const fetchMetadata = () => {
+      store.dispatch(DownloadActionTypes.FETCH_METADADTA, fileID);
+    };
 
-    return { fetchMetadata };
+    const fetchMetaOrDownload = () => {
+      if (!isModeDownloadDirect) fetchMetadata();
+      else store.dispatch(DownloadActionTypes.GET_FILES, [fileID]);
+    };
+
+    return {
+      isModeDownloadDirect,
+      fetchMetaOrDownload,
+    };
   },
   data() {
     return {
-      showLoader: true,
-      showAuth: false,
-      success: false,
+      showAuthView: false,
+      showErrorView: false,
+      showLoaderView: false,
+      showDownloadView: false,
     };
   },
   computed: {
@@ -69,38 +90,59 @@ export default defineComponent({
     authRequired(): boolean {
       return this.$store.state.download.auth.required;
     },
+    authState(): ProcessState {
+      return this.$store.state.download.auth.state;
+    },
   },
   watch: {
     "fetchState.value"() {
-      this.updateView();
+      this.updateLocalState();
     },
   },
   methods: {
-    authSuccess() {
-      this.showAuth = false;
-      this.showLoader = true;
-      this.fetchMetadata();
+    authSucccess() {
+      this.setNoView();
+      this.fetchMetaOrDownload();
     },
-    updateView() {
-      if (this.fetchState.isFinish) {
-        this.showLoader = false;
-        this.success = true;
-      } else if (this.fetchState.isRunning) {
-        this.showLoader = true;
-      } else if (this.fetchState.isError && this.authRequired) {
-        this.showLoader = false;
-        this.showAuth = true;
-      } else if (this.fetchState.isError) {
-        this.showLoader = false;
-        this.showAuth = false;
-        this.success = false;
-      } else {
-        this.showLoader = true;
-      }
+    updateLocalState() {
+      if (this.fetchState.isRunning) this.setLoaderView();
+      else if (
+        this.authRequired &&
+        (this.authState.isCreated || this.fetchState.isError)
+      )
+        this.setAuthView();
+      else if (this.fetchState.isError) this.setErrorView();
+      else if (this.fetchState.isFinish && !this.isModeDownloadDirect)
+        this.setDownloadView();
+      else if (this.fetchState.isFinish && this.isModeDownloadDirect)
+        this.setNoView();
+      else this.setNoView();
+    },
+    setNoView() {
+      this.showAuthView = false;
+      this.showErrorView = false;
+      this.showLoaderView = false;
+      this.showDownloadView = false;
+    },
+    setLoaderView() {
+      this.setNoView();
+      this.showLoaderView = true;
+    },
+    setAuthView() {
+      this.setNoView();
+      this.showAuthView = true;
+    },
+    setDownloadView() {
+      this.setNoView();
+      this.showDownloadView = true;
+    },
+    setErrorView() {
+      this.setNoView();
+      this.showErrorView = true;
     },
   },
   mounted() {
-    this.updateView();
+    this.updateLocalState();
   },
 });
 </script>
