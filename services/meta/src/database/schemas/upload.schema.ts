@@ -38,26 +38,23 @@ export class Upload {
   }
 
   public validPassword(pwd: string): boolean {
-    return compareSync(pwd, this.pwd)
+    return compareSync(pwd, this.pwd);
   }
 
   public isExpired(): boolean {
     let now = Date.now();
     let expire = new Date(this.expireAt).getTime();
-    return now < expire ? false : true;
+    return now > expire;
   }
 
   public isActive(): boolean {
     if (this.permanante) {
-      return true
+      return true;
     }
     if (!this.active) {
       return false;
     }
-    if (this.isExpired()) {
-      return false;
-    }
-    return this.active;
+    return !this.isExpired();
   }
 
   public getDataFileById(id: string): MetaFile[] {
@@ -65,23 +62,28 @@ export class Upload {
   }
 
   public setCreateAndExpireDate(expire: number) {
-    let date = new Date()
-    this.createAt = date.toISOString()
+    let date = new Date();
+    this.createAt = date.toISOString();
     let timeNow = date.getTime();
     switch (expire) {
-      case 0: // +10 Min
-        this.expireAt = new Date(timeNow + 10 * 60 * 1000).toISOString();
-        break
+      case 0: // if NODE_ENV:production = +10 Min else 30 Sec
+        if (process.env.NODE_ENV == 'production')
+          this.expireAt = new Date(timeNow + 10 * 60 * 1000).toISOString();
+        else this.expireAt = new Date(timeNow + 30 * 1000).toISOString();
+        break;
       case 1: // +1H
         this.expireAt = new Date(timeNow + 60 * 60 * 1000).toISOString();
-        break
+        break;
       case 2: // +1d
         this.expireAt = new Date(timeNow + 24 * 60 * 60 * 1000).toISOString();
-        break
+        break;
       case 3: // +3d
-        this.expireAt = new Date(timeNow + 3 * 24 * 60 * 60 * 1000).toISOString();
-        break
+        this.expireAt = new Date(
+          timeNow + 3 * 24 * 60 * 60 * 1000,
+        ).toISOString();
+        break;
       default:
+        // +10 Min
         this.expireAt = new Date(timeNow + 10 * 60 * 1000).toISOString();
     }
   }

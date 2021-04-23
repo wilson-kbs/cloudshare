@@ -51,6 +51,12 @@ export default defineComponent({
       },
     },
   },
+  beforeMount() {
+    if (process.env.NODE_ENV != "production") {
+      this.expirationListOption[0].short = "30 Sec";
+      this.expirationListOption[0].long = "30 Seconds";
+    }
+  },
 });
 </script>
 

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MetaModule } from './meta/meta.module';
 import { DatabaseModule } from './database/database.module';
@@ -24,6 +25,7 @@ let urlMongo = `mongodb://${process.env.MONGO_HOSTNAME}:${process.env.MONGO_PORT
     DatabaseModule,
     UploadModule,
     AuthModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [],
   providers: [],

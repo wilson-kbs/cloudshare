@@ -27,6 +27,8 @@ export class MetaController {
     @Query('f') fileID: string,
     @Headers('Authorization') authHead: string,
   ): Promise<MetadataRender> {
+    console.log('ta mere');
+
     const upload = await this.databaseService.findUploadById(uploadID);
     if (upload == null) {
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);

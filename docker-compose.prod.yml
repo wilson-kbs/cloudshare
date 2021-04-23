@@ -74,6 +74,7 @@ services:
       - 3000
       - 9000
     environment:
+      - NODE_ENV=production
       - MONGO_DB=$MONGO_DB
       - MONGO_HOSTNAME=cloudshare_database
       - MONGO_INITDB_USERNAME=$MONGO_INITDB_USERNAME

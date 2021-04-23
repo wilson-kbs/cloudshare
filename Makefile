@@ -9,6 +9,10 @@ start:
 stop:
 	docker-compose --env-file .env.dev down
 
+restart-all:
+	docker-compose --env-file .env.dev down -v
+	docker image prune -a -f --filter label=stage=dev --filter label=app_name=kabaliserv_cloudshare
+	docker-compose --env-file .env.dev up -d
 restart:
 	docker-compose --env-file .env.dev restart $(call args)
 
