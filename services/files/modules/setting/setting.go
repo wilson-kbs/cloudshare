@@ -14,6 +14,9 @@ var (
 	// it's mounting point for this service
 	AppURL string
 
+	// it's web ui url
+	WEBFrontURL string
+
 	// Server settings
 	HTTPAddr     string
 	HTTPPort     string
@@ -96,6 +99,12 @@ func NewContext() {
 	GRPCMetaServiceURL = os.Getenv(prefixEnv + "GRPC_META_SERVICE_URL")
 	if GRPCMetaServiceURL == "" {
 		log.Fatalf("Error: Not found \"%sGRPC_META_SERVICE_URL\" Environment variable ", prefixEnv)
+	}
+
+	// METADATA SERVICE URL
+	WEBFrontURL = os.Getenv(prefixEnv + "WEB_FRONT_URL")
+	if WEBFrontURL == "" {
+		log.Fatalf("Error: Not found \"%sWEB_FRONT_URL\" Environment variable ", prefixEnv)
 	}
 
 }

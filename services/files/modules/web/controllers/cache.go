@@ -13,7 +13,7 @@ import (
 )
 
 // GetCacheHander return new tus handler
-func (c *CSController) GetCacheHander() http.Handler {
+func (c *KSController) GetCacheHander() http.Handler {
 
 	// tusd mounting point url
 	tusdURL := path.Join(setting.WEBBasePath, "/cache") + "/"

@@ -13,13 +13,13 @@ restart:
 	docker-compose --env-file .env.dev restart $(call args)
 
 log:
-	docker-compose logs -f $(call args)
+	docker-compose --env-file .env.dev logs -f $(call args)
 
 logs:
-	docker-compose logs -f
+	docker-compose --env-file .env.dev logs -f
 
 rm:
-	docker-compose rm
+	docker-compose --env-file .env.dev rm
 
 ### PRODUCTION
 build:

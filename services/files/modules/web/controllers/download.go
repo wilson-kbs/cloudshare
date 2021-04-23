@@ -11,165 +11,227 @@ import (
 	"strings"
 	"time"
 
-	grpcMetaClient "github.com/wilson-kbs/cloudshare/services/files/modules/grpc/client"
-	"github.com/wilson-kbs/cloudshare/services/files/modules/storage"
-	"github.com/wilson-kbs/cloudshare/services/files/modules/utils"
+	rpcClient "github.com/wilson-kbs/cloudshare/services/files/modules/grpc/client"
+	metapb "github.com/wilson-kbs/cloudshare/services/files/modules/grpc/pb/meta"
+
+	///"github.com/wilson-kbs/cloudshare/services/files/modules/setting"
+
+	// "github.com/wilson-kbs/cloudshare/services/files/modules/storage"
+	// "github.com/wilson-kbs/cloudshare/services/files/modules/utils"
+
+	"github.com/gin-gonic/gin"
+)
+
+const (
+	ajaxRequestTrigger = "ajax"
+	frontFilesPath     = "/files"
+
+	// const query params
+	qUploadIDKey = "u"
+	qFileIDKey   = "f"
+	qTokenKey    = "token"
+	qModeKey     = "mode"
+
+	//
+	qModeValueDownload = "download"
 )
 
 // Download : Controller handler
-func (c CSController) Download(w http.ResponseWriter, r *http.Request) {
-	queryMap := r.URL.Query()
+func (k KSController) Download(c *gin.Context) {
 
-	uploadID := queryMap.Get("u")
+	reqTrigger := c.GetHeader("KSCS-Request-Trigger")
+
+	uploadID := c.Query(qUploadIDKey)
+	filesID := c.QueryArray(qFileIDKey)
 
 	if uploadID == "" {
-		utils.Render(w, http.StatusBadRequest)
+		k.redirectOrSendError(c, http.StatusBadRequest)
 		return
 	}
 
-	metaService, err := grpcMetaClient.GetMetaClientConn()
+	rpc, err := rpcClient.GetMetaClientConn()
 
 	if err != nil {
-		utils.Render(w, http.StatusInternalServerError)
+		k.sendError(c, http.StatusInternalServerError)
+		return
 	}
+	k.rpcMetaSRV = rpc
 
-	defer metaService.Close()
+	defer rpc.Close()
 
-	metaUpload, err := metaService.GetMetaUpload(uploadID)
+	metaUpload, err := rpc.GetMetaUpload(uploadID)
 
 	if err != nil {
-		e, ok := err.(*grpcMetaClient.Error)
+		err, ok := err.(*rpcClient.Error)
 
 		if ok {
-			utils.Render(w, e.HTTPCode())
-			return
+			log.Println("Error:", err)
 		}
 
-		utils.Render(w, http.StatusInternalServerError)
+		k.sendError(c, http.StatusInternalServerError)
+		return
+	}
+
+	if !metaUpload.Active {
+		k.redirectOrSendError(c, http.StatusNotFound)
 		return
 	}
 
 	if !metaUpload.Permanent {
 
-		if !metaUpload.Active {
-			utils.Render(w, http.StatusNotFound)
-			return
-		}
-
 		t, err := time.Parse(time.RFC3339, metaUpload.ExpireAt)
 		if err != nil {
-			utils.Render(w, http.StatusInternalServerError)
+			k.sendError(c, http.StatusInternalServerError)
 			return
 		}
 
 		if t.Unix() < time.Now().Unix() {
-			utils.Render(w, http.StatusForbidden)
+			k.redirectOrSendError(c, http.StatusForbidden)
+			return
 		}
 
 	}
 
 	if metaUpload.Auth {
-
-		bearToken := r.Header.Get("Authorization")
-
-		token := strings.Split(bearToken, " ")[1]
-
+		// if web front request from ajax
+		var token string
+		if reqTrigger == ajaxRequestTrigger {
+			bearToken := c.GetHeader("Authorization")
+			token = strings.Split(bearToken, " ")[1]
+		} else {
+			token = c.Query(qTokenKey)
+		}
 		if token == "" {
-			utils.Render(w, http.StatusUnauthorized)
+			k.redirectOrSendError(c, http.StatusUnauthorized)
 			return
 		}
-
-		ok, err := metaService.TokenIsValid(uploadID, token)
+		isValidToken, err := rpc.TokenIsValid(uploadID, token)
 
 		if err != nil {
-			utils.Render(w, http.StatusInternalServerError)
+			k.sendError(c, http.StatusInternalServerError)
 			return
 		}
 
-		if !ok {
-			utils.Render(w, http.StatusUnauthorized)
+		if !isValidToken {
+			k.redirectOrSendError(c, http.StatusUnauthorized)
 			return
 		}
-
 	}
 
-	if fileID := queryMap.Get("f"); fileID != "" {
-
-		metaFile, err := metaService.GetUploadMetaFile(uploadID, fileID)
-
-		if err != nil {
-			e, ok := err.(*grpcMetaClient.Error)
-
-			if ok {
-				utils.Render(w, e.HTTPCode())
-				return
-			}
-
-			utils.Render(w, http.StatusInternalServerError)
-			return
+	if len(filesID) == 1 {
+		if fileID := filesID[0]; fileID != "" {
+			k.sendFile(c, fileID)
+		} else {
+			k.redirectOrSendError(c, http.StatusBadRequest)
 		}
-
-		if !c.stores.Files.IsExist(fileID) {
-			utils.Render(w, http.StatusNotFound)
-		}
-
-		src, err := c.stores.Files.Open(fileID)
-
-		if err != nil {
-			utils.Render(w, http.StatusInternalServerError)
-			return
-		}
-
-		defer src.Close()
-
-		w.Header().Set("content-type", metaFile.Type)
-
-		w.Header().Set("Content-Length", fmt.Sprintf("%v", metaFile.Size))
-
-		contentDisposition := "attachment; filename*=UTF-8''" + url.QueryEscape(metaFile.Name)
-
-		w.Header().Set("Content-Disposition", contentDisposition)
-
-		w.WriteHeader(http.StatusOK)
-
-		io.Copy(w, src)
-
-		return
+	} else {
+		k.sendZipFile(c)
 	}
-
 	// download all file to zip
 
-	filesStruct, err := metaService.GetUploadMetaFiles(uploadID)
+}
+
+func (k *KSController) sendFile(c *gin.Context, fileID string) {
+	uploadID := c.Query(qUploadIDKey)
+
+	metaFile, err := k.rpcMetaSRV.GetUploadMetaFile(uploadID, fileID)
+
 	if err != nil {
-		utils.Render(w, http.StatusInternalServerError)
+		err, ok := err.(*rpcClient.Error)
+
+		if ok {
+			log.Println("Error:", err)
+		}
+		k.sendError(c, http.StatusInternalServerError)
 		return
 	}
 
-	for _, file := range filesStruct.Files {
-		if !storage.ObjectStorage.Files.IsExist(file.Id) {
-			utils.Render(w, http.StatusInternalServerError)
+	if !k.stores.Files.IsExist(fileID) {
+		k.redirectOrSendError(c, http.StatusNotFound)
+	}
+
+	src, err := k.stores.Files.Open(fileID)
+	if err != nil {
+		k.sendError(c, http.StatusInternalServerError)
+		return
+	}
+	defer src.Close()
+
+	c.Header("content-type", metaFile.Type)
+	// w.Header().Set("content-type", metaFile.Type)
+
+	c.Header("Content-Length", fmt.Sprintf("%v", metaFile.Size))
+	// w.Header().Set("Content-Length", fmt.Sprintf("%v", metaFile.Size))
+
+	contentDisposition := fmt.Sprintf("attachment; filename*=UTF-8''%s", url.QueryEscape(metaFile.Name))
+
+	c.Header("Content-Disposition", contentDisposition)
+	// w.Header().Set("Content-Disposition", contentDisposition)
+	c.Status(http.StatusOK)
+	// w.WriteHeader(http.StatusOK)
+
+	io.Copy(c.Writer, src)
+}
+
+// sendZipFile return file zip
+func (k *KSController) sendZipFile(c *gin.Context) {
+	uploadID := c.Query(qUploadIDKey)
+	filesID := c.QueryArray(qFileIDKey)
+
+	var metaFiles []*metapb.MetaFile
+
+	if len(filesID) > 0 {
+		for _, fileID := range filesID {
+			if fileID != "" {
+				metaFile, err := k.rpcMetaSRV.GetUploadMetaFile(uploadID, fileID)
+				if err != nil {
+					k.sendError(c, http.StatusInternalServerError)
+					return
+				}
+				if !k.stores.Files.IsExist(metaFile.Id) {
+					k.sendError(c, http.StatusInternalServerError)
+					return
+				}
+				metaFiles = append(metaFiles, metaFile)
+			}
+		}
+	} else {
+		uploadMetaFiles, err := k.rpcMetaSRV.GetUploadMetaFiles(uploadID)
+		if err != nil {
+			k.sendError(c, http.StatusInternalServerError)
 			return
+		}
+		if len(uploadMetaFiles.Files) == 1 {
+			fileID := uploadMetaFiles.Files[0].Id
+			k.sendFile(c, fileID)
+			return
+		}
+		for _, metaFile := range uploadMetaFiles.Files {
+			if !k.stores.Files.IsExist(metaFile.Id) {
+				k.sendError(c, http.StatusInternalServerError)
+				return
+			}
+			metaFiles = append(metaFiles, metaFile)
 		}
 	}
 
-	w.Header().Set("content-type", "application/zip")
+	c.Header("content-type", "application/zip")
 
-	contentDisposition := "attachment; filename*=UTF-8''Kabaliserv-CloudShare-" + time.Now().Format("02-01-2006") + ".zip"
+	contentDisposition := fmt.Sprintf("attachment; filename*=UTF-8''Kabaliserv-CloudShare-%s-%s.zip", uploadID, time.Now().Format("02-01-2006"))
+	c.Header("Content-Disposition", contentDisposition)
 
-	w.Header().Set("Content-Disposition", contentDisposition)
+	c.Status(http.StatusOK)
 
-	w.WriteHeader(http.StatusOK)
+	buffZip := zip.NewWriter(c.Writer)
 
-	buffZip := zip.NewWriter(w)
+	for _, metaFile := range metaFiles {
 
-	for _, file := range filesStruct.Files {
-
-		src, err := c.stores.Files.Open(file.Id)
+		src, err := k.stores.Files.Open(metaFile.Id)
 		if err != nil {
 			log.Println(err)
 		}
 
-		stat, err := c.stores.Files.Stat(file.Id)
+		stat, err := k.stores.Files.Stat(metaFile.Id)
 		if err != nil {
 			log.Println(err)
 		}
@@ -179,9 +241,9 @@ func (c CSController) Download(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 
-		zipHeader.Name = file.Name
+		zipHeader.Name = metaFile.Name
 
-		zipHeader.Modified = time.Unix(0, (file.LastModified * int64(time.Millisecond)))
+		zipHeader.Modified = time.Unix(0, (metaFile.LastModified * int64(time.Millisecond)))
 
 		zipHeader.Flags = 0x800
 

@@ -34,6 +34,7 @@ services:
   reverse-proxy:
     image: traefik:v2.2
     command: --api.insecure=true --api.dashboard=true --providers.docker
+    restart: unless-stopped
     ports:
       - $LISTEN_PORT:80
       - $DASHBORD_LISTEN_PORT:8080
@@ -111,6 +112,7 @@ services:
       - TZ=Europe/Paris
       - CLOUDSHARE_GRPC_META_SERVICE_URL=$METADATA_SERVICES_HOSTNAME:$GRPC_DEFAULT_LISTEN_PORT
       - CLOUDSHARE_WEB_BASE_PATH=$API_BASEPATH
+      - CLOUDSHARE_WEB_FRONT_URL=$WEB_URL
     labels:
       - "traefik.http.routers.files-srv.rule=PathPrefix(`${API_BASEPATH}/d`, `${API_BASEPATH}/cache`)"
       - "traefik.http.services.files-srv.loadbalancer.server.port=3000"

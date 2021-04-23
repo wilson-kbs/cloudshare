@@ -7,27 +7,46 @@ import (
 
 	"golang.org/x/net/http2"
 
-	"github.com/gorilla/mux"
 	"github.com/wilson-kbs/cloudshare/services/files/modules/setting"
 	"github.com/wilson-kbs/cloudshare/services/files/modules/web/controllers"
+
+	//"github.com/gorilla/mux"
+
+	"github.com/gin-gonic/gin"
 )
 
 // getHandler Web Router
-func getRouter() *mux.Router {
-	var router = mux.NewRouter()
+func getRouter() *gin.Engine {
+	var router = gin.Default()
 
-	baseRoute := router.PathPrefix(setting.WEBBasePath).Subrouter()
+	baseRoute := router.Group(setting.WEBBasePath)
 
 	controller := controllers.NewControler()
 
 	cacheHandler := controller.GetCacheHander()
 
-	baseRoute.PathPrefix("/cache/").Handler(cacheHandler)
+	baseRoute.Any("/cache/*any", gin.WrapH(cacheHandler))
 
-	baseRoute.Path("/d").HandlerFunc(controller.Download).Methods("GET")
+	baseRoute.GET("/d", controller.Download)
 
 	return router
 }
+
+// func getRouter() *mux.Router {
+// 	var router = mux.NewRouter()
+
+// 	baseRoute := router.PathPrefix(setting.WEBBasePath).Subrouter()
+
+// 	controller := controllers.NewControler()
+
+// 	cacheHandler := controller.GetCacheHander()
+
+// 	baseRoute.PathPrefix("/cache/").Handler(cacheHandler)
+
+// 	baseRoute.Path("/d").HandlerFunc(controller.Download).Methods("GET")
+
+// 	return router
+// }
 
 // StartServer exec web server
 func StartServer() {
