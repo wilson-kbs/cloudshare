@@ -91,6 +91,7 @@ services:
       - CLOUDSHARE_WEB_BASEPATH=$API_BASEPATH
       - CLOUDSHARE_WEB_PORT=3000
       - CLOUDSHARE_FILES_MANAGER_ADDRESS=$cloudshare_files-srv
+      - CLOUDSHARE_JWT_SECRET=$JWT_SECRET
       - GRPC_LISTEN_PORT=9000
     labels:
       - "traefik.http.routers.meta-srv.tls=true"
