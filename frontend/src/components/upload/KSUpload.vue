@@ -115,8 +115,8 @@ export default defineComponent({
         }
       }
     },
-    progressBarOffsetWidht(newVal: number, oldVal: number) {
-      if (newVal >= 100 + this.progressBarOffsetLeft) {
+    progressBarOffsetWidht(value: number) {
+      if (value >= 100 + this.progressBarOffsetLeft) {
         sleep(1000).then(() => {
           this.$nextTick(async () => {
             this.successUpload = true;
@@ -143,7 +143,7 @@ export default defineComponent({
         });
       });
     },
-    startUpload(e?: any) {
+    startUpload() {
       this.showProgressBar = true;
       this.$nextTick(() => {
         if (this.uploadWrapper instanceof HTMLElement) {
@@ -153,7 +153,6 @@ export default defineComponent({
       });
     },
     animeProgressBar(newVal: number, oldVal: number) {
-      console.log(newVal, oldVal);
       const diff = newVal - oldVal;
       const PAS = diff / 3;
       const value = diff / PAS;

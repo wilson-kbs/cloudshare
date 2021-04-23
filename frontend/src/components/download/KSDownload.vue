@@ -2,7 +2,11 @@
   <div class="ks-download">
     <div class="ks-download__header">
       <span class="title">Fichiers</span>
-      <button class="download-action" title="Télécharger tout"></button>
+      <button
+        class="download-action"
+        title="Télécharger tout"
+        @click="downloadAllFiles"
+      ></button>
     </div>
     <div class="ks-download__body">
       <KSFilesTable />
@@ -11,6 +15,7 @@
 </template>
 
 <script lang="ts">
+import { DownloadActionTypes } from "@/store/modules/download/action-types";
 import { defineComponent } from "vue";
 
 import KSFilesTable from "./KSFilesTable.vue";
@@ -19,10 +24,11 @@ export default defineComponent({
   components: {
     KSFilesTable,
   },
-  setup() {
-    return {};
+  methods: {
+    downloadAllFiles() {
+      this.$store.dispatch(DownloadActionTypes.GET_FILES);
+    },
   },
-  computed: {},
 });
 </script>
 

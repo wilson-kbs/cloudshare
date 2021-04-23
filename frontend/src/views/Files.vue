@@ -101,7 +101,7 @@ export default defineComponent({
   },
   methods: {
     authSucccess() {
-      this.setNoView();
+      if (this.isModeDownloadDirect) this.setNoView();
       this.fetchMetaOrDownload();
     },
     updateLocalState() {
@@ -112,6 +112,7 @@ export default defineComponent({
       )
         this.setAuthView();
       else if (this.fetchState.isError) this.setErrorView();
+      else if (this.fetchState.isReady) this.fetchMetaOrDownload();
       else if (this.fetchState.isFinish && !this.isModeDownloadDirect)
         this.setDownloadView();
       else if (this.fetchState.isFinish && this.isModeDownloadDirect)

@@ -9,11 +9,13 @@
     <script>
       const html = document.querySelector("html");
       const theme = localStorage.getItem("theme");
-      if (!theme) {
+      localStorage.setItem("theme", "dark");
+      html.setAttribute("dark", "");
+      /* if (!theme) {
         localStorage.setItem("theme", "light");
       } else if (theme == "dark") {
         html.setAttribute("dark", "");
-      }
+      } */
       let b = document.documentElement;
       b.setAttribute("data-useragent", navigator.userAgent);
       b.setAttribute("data-platform", navigator.platform);

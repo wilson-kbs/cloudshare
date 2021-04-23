@@ -86,11 +86,6 @@ export default defineComponent({
       return this.$store.state.upload.files.length == 0;
     },
   },
-  watch: {
-    sizeAllFiles(size: number) {
-      console.log(size);
-    },
-  },
   methods: {
     openBrowserFiles(event: Event) {
       event.stopImmediatePropagation();

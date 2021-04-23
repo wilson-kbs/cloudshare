@@ -4,10 +4,10 @@
       Kabaliserv
       <span class="service">Cloud Share</span>
     </span>
-    <span class="toggle-theme">
+    <!-- <span class="toggle-theme">
       <input type="checkbox" id="theme" v-model="darkTheme" />
       <label for="theme">DARK</label>
-    </span>
+    </span> -->
   </div>
 </template>
 
@@ -16,45 +16,45 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   setup() {
-    const HTML: HTMLElement = document.querySelector("html")!;
+    const HTML: HTMLHtmlElement | null = document.querySelector("html");
     return {
       HTML,
     };
   },
-  data() {
-    return {
-      theme: localStorage.getItem("theme"),
-    };
-  },
-  computed: {
-    darkTheme: {
-      get(): boolean {
-        return this.theme != "light" ?? false;
-      },
-      set(value: boolean) {
-        if (value) {
-          this.theme = "dark";
-        } else {
-          this.theme = "light";
-        }
-        this.toggleTheme();
-      },
-    },
-  },
-  methods: {
-    toggleTheme() {
-      if (this.darkTheme) {
-        localStorage.setItem("theme", "dark");
-        this.HTML.setAttribute("dark", "");
-      } else {
-        localStorage.setItem("theme", "light");
-        this.HTML.removeAttribute("dark");
-      }
-    },
-  },
-  mounted() {
-    this.toggleTheme();
-  },
+  // data() {
+  //   return {
+  //     theme: localStorage.getItem("theme"),
+  //   };
+  // },
+  // computed: {
+  //   darkTheme: {
+  //     get(): boolean {
+  //       return this.theme != "light" ?? false;
+  //     },
+  //     set(value: boolean) {
+  //       if (value) {
+  //         this.theme = "dark";
+  //       } else {
+  //         this.theme = "light";
+  //       }
+  //       this.toggleTheme();
+  //     },
+  //   },
+  // },
+  // methods: {
+  //   toggleTheme() {
+  //     if (this.darkTheme) {
+  //       localStorage.setItem("theme", "dark");
+  //       this.HTML?.setAttribute("dark", "");
+  //     } else {
+  //       localStorage.setItem("theme", "light");
+  //       this.HTML?.removeAttribute("dark");
+  //     }
+  //   },
+  // },
+  // mounted() {
+  //   this.toggleTheme();
+  // },
 });
 </script>
 

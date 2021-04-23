@@ -17,11 +17,7 @@ export function sortFileItem(
 
   const newArrayFileItem: Array<FileItem> = [];
 
-  let count = 0;
-
   for (const nextFileItem of files) {
-    console.log(newArrayFileItem.slice());
-    count++;
     if (newArrayFileItem.length == 0) {
       newArrayFileItem.push(nextFileItem);
 
@@ -46,7 +42,6 @@ export function sortFileItem(
         a = prevValue;
         b = nextValue;
       }
-      console.log(a, "=", b, a == b);
 
       if (
         a == b &&
@@ -83,6 +78,5 @@ export function sortFileItem(
       }
     }
   }
-  console.log(newArrayFileItem.slice());
   return newArrayFileItem;
 }

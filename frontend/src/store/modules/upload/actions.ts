@@ -1,6 +1,5 @@
 import { ActionContext, ActionTree, DispatchOptions } from "vuex";
 import { nanoid } from "nanoid";
-import { Upload } from "tus-js-client";
 
 import { RootState } from "@/store";
 
@@ -11,7 +10,7 @@ import { UploadActionTypes as ActionTypes } from "./action-types";
 import { UploadMutationTypes as MutationTypes } from "./mutation-types";
 import { Getters } from "./getters";
 
-import type { UploadFileItem, UploadJSONSend } from "@/@types";
+import type { UploadJSONSend } from "@/@types";
 import { Config } from "@/config";
 import { FileItem, FileItemProps } from "@/models";
 
@@ -80,7 +79,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
   async [ActionTypes.HANDLER]({ state, getters, commit, dispatch }) {
     // Send next files
     const file = getters.UPLOAD__NextReadyFile;
-    console.log(file);
     if (file && file.upload) return file.upload();
 
     // Set processCacheState to avoid multi call api
@@ -92,8 +90,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
       commit(MutationTypes.PROCESS_STATE, "FINISH");
     });
   },
-  async [ActionTypes.SEND_OPTIONS]({ state, getters, commit }) {
-    console.log("finish");
+  async [ActionTypes.SEND_OPTIONS]({ getters, commit }) {
     const body: UploadJSONSend = {
       auth: getters.UPLOAD__Password.length < 4 ? false : true,
       password: getters.UPLOAD__Password,

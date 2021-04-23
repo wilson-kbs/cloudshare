@@ -60,8 +60,7 @@
 </template>
 
 <script lang="ts">
-import { useStore } from "@/store";
-import { defineComponent, ref } from "vue";
+import { defineComponent } from "vue";
 
 import DrawerFileItem from "@/components/common/DawerFileItem.vue";
 import { FileItem } from "@/models";
@@ -96,9 +95,11 @@ export default defineComponent({
   computed: {
     totalSizeFiles(): number {
       const allSizeFiles = this.files.map((item: FileItem) => item.size);
-      return allSizeFiles.reduce(
-        (prevSize: number, nextSize: number) => prevSize + nextSize
-      );
+      if (allSizeFiles.length > 0)
+        return allSizeFiles.reduce(
+          (prevSize: number, nextSize: number) => prevSize + nextSize
+        );
+      return 0;
     },
   },
   methods: {
@@ -135,9 +136,6 @@ export default defineComponent({
       else if (sort == "size")
         this.files = this.files.sortFileItemBySize(this.sortDirection);
     },
-  },
-  mounted() {
-    console.log(this.files);
   },
 });
 </script>

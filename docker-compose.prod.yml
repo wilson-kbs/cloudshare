@@ -31,9 +31,16 @@ services:
       context: reverse_proxy
       args:
         VERSION: $VERSION
+    command:
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker
+      # - --entrypoints.web.address=:80
+      - --entrypoints.web-secure.address=:443
     restart: unless-stopped
     ports:
-      - $LISTEN_PORT:80
+      # - $LISTEN_PORT:80
+      - $LISTEN_PORT_SSL:443
       - $DASHBORD_LISTEN_PORT:8080
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -53,6 +60,7 @@ services:
     ports:
       - "80"
     labels:
+      - "traefik.http.routers.front.tls=true"
       - "traefik.http.routers.front.rule=Host(`${WEB_URL}`)"
       - "traefik.http.routers.front.rule=PathPrefix(`/`)"
       - "traefik.http.services.front.loadbalancer.server.port=80"
@@ -85,6 +93,7 @@ services:
       - CLOUDSHARE_FILES_MANAGER_ADDRESS=$cloudshare_files-srv
       - GRPC_LISTEN_PORT=9000
     labels:
+      - "traefik.http.routers.meta-srv.tls=true"
       - "traefik.http.routers.meta-srv.rule=Host(`${API_URL}`)"
       - "traefik.http.routers.meta-srv.rule=PathPrefix(`${API_BASEPATH}/upload`, `${API_BASEPATH}/meta`, `${API_BASEPATH}/auth`)"
       - "traefik.http.services.meta-srv.loadbalancer.server.port=3000"
@@ -110,7 +119,9 @@ services:
     environment:
       - CLOUDSHARE_GRPC_META_SERVICE_URL=cloudshare_meta-srv:9000
       - CLOUDSHARE_WEB_BASE_PATH=$API_BASEPATH
+      - CLOUDSHARE_WEB_FRONT_URL=$WEB_URL
     labels:
+      - "traefik.http.routers.files-srv.tls=true"
       - "traefik.http.routers.files-srv.rule=Host(`${API_URL}`)"
       - "traefik.http.routers.files-srv.rule=PathPrefix(`${API_BASEPATH}/d`, `${API_BASEPATH}/cache`)"
       - "traefik.http.services.files-srv.loadbalancer.server.port=3000"

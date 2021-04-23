@@ -86,7 +86,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
 
         if (data.authRequired) commit(MutationTypes.AUTH_REQUIRED, true);
 
-        commit(MutationTypes.FETCH_STATE, "FINISH");
+        commit(MutationTypes.FETCH_STATE, "READY");
       }
     });
   },
@@ -122,6 +122,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
         if (data.token) commit(MutationTypes.AUTH_TOKEN, data.token);
 
         commit(MutationTypes.AUTH_STATE, "SUCCESS");
+        commit(MutationTypes.FETCH_STATE, "READY");
       }
     });
   },
@@ -185,12 +186,9 @@ export const actions: ActionTree<State, RootState> & Actions = {
     if (getters.DOWNLOAD__IsAuthRequired && getters.DOWNLOAD__IsAuthSuccess)
       url.searchParams.append("token", state.auth.token);
 
-    console.log(url.toJSON());
-
     const link = document.createElement("a");
     link.href = url.toJSON();
     link.target = "_blank";
     link.click();
-    console.log(filesID);
   },
 };
