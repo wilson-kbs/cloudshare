@@ -6,4 +6,5 @@
 *.njsproj
 *.sln
 *.sw?
+
 /.env
