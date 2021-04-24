@@ -71,9 +71,7 @@ services:
       - files-service
 
   metadata-service:
-    build:
-      context: services/meta
-      target: dev
+    build: services/meta
     restart: unless-stopped
     depends_on:
       - mongo
@@ -107,9 +105,7 @@ services:
           - $METADATA_SERVICES_HOSTNAME
 
   files-service:
-    build:
-      context: services/files
-      target: dev
+    build: services/files
     restart: unless-stopped
     command: air -c .air.toml
     volumes:

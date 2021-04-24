@@ -1,6 +1,0 @@
-FROM mongo
-ARG VERSION
-LABEL app_name=kabaliserv_cloudshare
-LABEL stage=prod
-LABEL version=${VERSION}
-COPY init-mongo.sh /docker-entrypoint-initdb.d/init-mongo.sh
