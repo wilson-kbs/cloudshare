@@ -5,7 +5,7 @@ import { store } from "./store";
 import { Directives } from "./directives";
 
 import "./globals-CS";
-import "./assets/styles/main.scss";
+import "./style";
 
 const app = createApp(App);
 app.use(store);

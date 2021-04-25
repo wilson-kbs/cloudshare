@@ -1,0 +1,118 @@
+@import "../../../../assets/styles/font-awesome/fontawesome.scss";
+@import "../../../../assets/styles/font-awesome/solid.scss";
+@import "../../../../assets/styles/font-awesome/regular.scss";
+
+.ks-input {
+  position: relative;
+  display: inline-block;
+  height: 5rem;
+  width: 100%;
+  border-radius: 1rem;
+  color: #cfcfcf;
+  font-size: 1.6rem;
+
+  & input {
+    position: relative;
+    display: inline-block;
+    box-sizing: border-box;
+    height: 100%;
+    color: inherit;
+    font-size: inherit;
+    padding: 0rem 1rem;
+    border: 1px solid #474747;
+    background-color: transparent;
+    border-radius: inherit;
+    width: 100%;
+    max-width: 100%;
+    outline: 0;
+    transition: border-color 0.1s linear;
+
+    &::placeholder {
+      color: inherit;
+      font-size: inherit;
+      opacity: 0.4;
+    }
+
+    &:hover,
+    &:focus {
+      border-color: #40a9ff;
+    }
+
+    &:focus {
+      box-shadow: 0 0 3px 3px rgba(24, 144, 255, 0.2);
+    }
+
+    &.error {
+      border-color: #e9322d;
+
+      &:focus {
+        box-shadow: 0 0 3px 2px #e9322d;
+      }
+    }
+  }
+  &:hover > input:not(.error) {
+    border-color: #40a9ff;
+  }
+}
+
+.ks-input-password {
+  padding-right: 4rem !important;
+
+  & + .toggle-password-view {
+    @extend %fa-icon;
+    @extend .fas;
+
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    font-size: 12px;
+    transform: translateY(-50%);
+    opacity: 0.3;
+    transition: opacity 0.1s linear;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.6;
+    }
+  }
+
+  &[type="text"] + .toggle-password-view:after {
+    content: fa-content($fa-var-eye);
+  }
+
+  &[type="password"] + .toggle-password-view:after {
+    content: fa-content($fa-var-eye-slash);
+  }
+}
+
+.ks-input-copy {
+  cursor: pointer;
+
+  &[copy-supported] {
+    padding-right: 5rem !important;
+  }
+
+  & + .clipboard-btn {
+    @extend %fa-icon;
+    @extend .far;
+
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    font-size: 2.5rem;
+    transform: translateY(-50%);
+    height: 2.9rem;
+    width: 2.9rem;
+    display: flex;
+    cursor: pointer;
+
+    &::after {
+      margin: auto;
+      opacity: 0.4;
+      content: fa-content($fa-var-copy);
+    }
+    &:hover::after {
+      opacity: 0.8;
+    }
+  }
+}

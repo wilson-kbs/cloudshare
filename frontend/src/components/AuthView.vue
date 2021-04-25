@@ -2,10 +2,12 @@
   <section :class="['auth-view']">
     <div class="auth-view__wrapper">
       <div class="auth-view__content">
-        <InputPassword
+        <KSInput
           class="input-assword"
-          :autoFocus="true"
+          type="password"
           v-model="password"
+          :autoFocus="true"
+          :error="error"
           @keyup:enter="getAuth"
         />
         <span class="action__send" @click="getAuth"></span>
@@ -20,14 +22,14 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import InputPassword from "@/components/common/InputPassword.vue";
+import KSInput from "@/components/common/KSInput";
 import { DownloadActionTypes } from "@/store/modules/download/action-types";
 import { ProcessState } from "@/_utils";
 
 export default defineComponent({
   emits: ["success"],
   components: {
-    InputPassword,
+    KSInput,
   },
   setup() {
     return {};

@@ -5,10 +5,12 @@
     </div>
     <div class="options-body">
       <ExpirationOption />
-      <InputPassword
-        class="password-option"
+      <KSInput
+        type="password"
+        class="password-opt"
         v-model="password"
-        :height="'5rem'"
+        :error="passwordError"
+        @blur="checkPassword()"
       />
     </div>
   </div>
@@ -19,19 +21,22 @@ import { defineComponent } from "vue";
 
 import ExpirationOption from "./options/ExpirationOption.vue";
 
-import InputPassword from "@/components/common/InputPassword.vue";
+import KSInput from "@/components/common/KSInput";
+
 import { UploadMutationTypes } from "@/store/modules/upload/mutation-types";
 
 export default defineComponent({
   components: {
     ExpirationOption,
-    InputPassword,
+    KSInput,
   },
   setup() {
     return {};
   },
   data() {
-    return {};
+    return {
+      passwordError: false,
+    };
   },
   computed: {
     password: {
@@ -41,6 +46,19 @@ export default defineComponent({
       set(value: string) {
         this.$store.commit(UploadMutationTypes.PASSWORD, value);
       },
+    },
+  },
+  watch: {
+    password(value: string | number) {
+      console.log(value);
+    },
+  },
+  methods: {
+    checkPassword() {
+      if (this.password.length == 0) return;
+      const regex = new RegExp("^[-_0-9a-zA-Z]{4,32}$");
+      if (regex.test(this.password)) this.passwordError = false;
+      else this.passwordError = true;
     },
   },
 });
@@ -56,9 +74,9 @@ export default defineComponent({
   padding: 0 10px;
   padding-top: 10px;
 
-  & .password-option {
-    padding-top: 15px;
-    padding-bottom: 10px;
+  & .password-opt {
+    margin-top: 15px;
+    margin-bottom: 10px;
   }
 }
 </style>

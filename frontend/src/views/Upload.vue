@@ -4,7 +4,7 @@
       <KSUpload v-if="!complete" @complete="complete = true" />
       <section class="download-url" v-else>
         <span class="title-section-dowwnload-url">Lien vers le partage</span>
-        <InputCopy :value="downloadURL" />
+        <KSInput type="copy" :value="downloadURL" />
       </section>
     </transition>
   </div>
@@ -13,13 +13,13 @@
 <script lang="ts">
 import { defineComponent, Suspense } from "vue";
 import KSUpload from "@/components/upload/KSUpload.vue";
-import InputCopy from "@/components/common/InputCopy.vue";
+import KSInput from "@/components/common/KSInput";
 
 export default defineComponent({
   name: "Upload",
   components: {
     KSUpload,
-    InputCopy,
+    KSInput,
   },
   data() {
     return {
