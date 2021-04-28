@@ -7,8 +7,7 @@ import { Directives } from "./directives";
 import "./globals-CS";
 import "./style";
 
-const app = createApp(App);
-app.use(store);
-app.use(router);
-app.use(Directives);
-app.mount("#app");
+createApp(App)
+  .use(store)
+  .use(router) /* .use(Directives) */
+  .mount("#app");

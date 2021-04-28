@@ -40,7 +40,7 @@
         </td>
         <td class="filesize">
           <span class="size">
-            {{ file.size.formatToStringFileSize() }}
+            {{ file.size?.formatToStringFileSize() }}
           </span>
         </td>
       </tr>

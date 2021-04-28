@@ -16,12 +16,13 @@ export class FileItem {
   id: string;
   mode: FilesItemMode;
 
-  name!: string;
-  size!: number;
+  name?: string;
+  private _size?: number;
 
   serverID?: string;
 
-  upload?: () => void;
+  private _file?: File;
+
   bytesUploaded = 0;
   processState: ProcessState;
 
@@ -29,11 +30,6 @@ export class FileItem {
     this.id = props.id;
     this.mode = props.mode;
     this.processState = new ProcessState();
-  }
-
-  setMeta(fileName: string, fileSize: number) {
-    this.name = fileName;
-    this.size = fileSize;
   }
 
   get isReady(): boolean {
@@ -48,17 +44,40 @@ export class FileItem {
     return this.processState.isFinish;
   }
 
-  url = new URL(Config.TUS_PATH, Config.API_URL);
+  get size(): number {
+    return this._size ?? 0;
+  }
 
-  generateUploader(file: File) {
+  set size(size: number) {
+    this._size = size;
+  }
+
+  get file() {
+    return this._file;
+  }
+
+  set file(file: File | undefined) {
+    if (file) {
+      this.processState.value = "READY";
+      this._file = file;
+    }
+  }
+
+  upload(file?: File) {
+    const dataFile = file ?? this.file;
+    if (!dataFile) return;
+
+    const url = new URL(Config.TUS_PATH, Config.API_URL);
+
     const store = useStore();
-    const upload = new Upload(file, {
-      endpoint: this.url.toString(),
+
+    const upload = new Upload(dataFile, {
+      endpoint: url.toString(),
       retryDelays: [0, 3000, 5000, 10000, 20000],
       metadata: {
-        filename: file.name,
-        filetype: file.type,
-        lastmodified: file.lastModified.toString(),
+        filename: dataFile.name,
+        filetype: dataFile.type,
+        lastmodified: dataFile.lastModified.toString(),
       },
       onError: (error) => {
         this.processState.value = "ERROR";
@@ -85,10 +104,6 @@ export class FileItem {
       upload.start();
     };
 
-    this.processState.value = "READY";
-
-    this.upload = starter;
-
-    return starter;
+    return starter();
   }
 }

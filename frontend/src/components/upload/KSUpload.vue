@@ -102,9 +102,12 @@ export default defineComponent({
     isDownloadAllow() {
       const a = this.$store.getters.UPLOAD__FilesLength !== 0;
       const b =
+        this.$store.getters.UPLOAD__FilesLength <=
+        this.$store.state.upload.maxFiles;
+      const c =
         this.$store.state.upload.maxSizeFiles >
         this.$store.getters.UPLOAD__GetSizeOfAllFiles;
-      return a && b;
+      return a && b && c;
     },
   },
   watch: {

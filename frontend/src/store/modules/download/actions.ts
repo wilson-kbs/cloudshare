@@ -163,7 +163,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
         data.files.forEach((item) => {
           const file = new FileItem({ id: item.id, mode: "DOWNLOAD" });
 
-          file.setMeta(item.name, item.size);
+          file.name = item.name;
+          file.size = item.size;
 
           commit(MutationTypes.ADD_FILE, file);
         });

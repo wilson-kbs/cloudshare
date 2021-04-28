@@ -64,8 +64,9 @@ export const actions: ActionTree<State, RootState> & Actions = {
       }
     }
     const fileItem = new FileItem(FileItemProps);
-    fileItem.setMeta(file.name, file.size);
-    fileItem.generateUploader(file);
+    fileItem.name = file.name;
+    fileItem.size = file.size;
+    fileItem.file = file;
     commit(MutationTypes.PUSH_FILE, fileItem);
   },
   [ActionTypes.START_UPLOAD]({ state, commit }, payload) {
@@ -118,6 +119,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
     })
       .then(handleResponse)
       .then((response) => response.text());
+    console.log(data);
+
     return commit(MutationTypes.UPLOAD_ID, data);
   },
 };
