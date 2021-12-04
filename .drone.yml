@@ -1,0 +1,57 @@
+kind: pipeline
+type: docker
+name: webui-linux-amd64
+
+platform:
+  os: linux
+  arch: amd64
+
+trigger:
+  branch:
+    - dev
+    - master
+  event:
+    include:
+      - push
+
+steps:
+  - name: publish
+    image: plugins/docker
+    settings:
+      custom_labels:
+        - "BUILD_NUMBER=${DRONE_BUILD_NUMBER}"
+        - "BUILD_SHA=${DRONE_COMMIT_SHA}"
+      tags:
+        - ${DRONE_COMMIT_SHA}
+      repo: registry.kabaliserv.fr/cloudshare/webui
+      registry: registry.kabaliserv.fr
+      dockerfile: frontend/Dockerfile.prod
+      target: production
+      context: frontend
+      username:
+        from_secret: registry_cloudshare_username
+      password:
+        from_secret: registry_cloudshare_password
+
+  - name: update-manifests
+    pull: if-not-exists
+    image: registry.kabaliserv.fr/cloudshare/metadata_api:1.2
+    environment:
+      SSH_KEY:
+        from_secret: manifests_ssh_key
+      IMAGES: registry.kabaliserv.fr/cloudshare/webui
+      IMAGE_TAG: ${DRONE_COMMIT_BRANCH}-${DRONE_COMMIT_SHA:0:7}
+      MANIFEST_HOST: github.com
+      MANIFEST_USER: wilson-kbs
+      MANIFEST_REPO: test-kube
+      MANIFEST_BRANCH: ${DRONE_COMMIT_BRANCH}
+      MANIFEST_PROJECT: cloudshare
+      KUSTOMIZATION: dev
+    depends_on:
+      - publish
+    when:
+      event:
+        - push
+
+image_pull_secrets:
+  - kabaliserv_registry_config
