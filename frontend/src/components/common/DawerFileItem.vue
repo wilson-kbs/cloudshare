@@ -115,7 +115,7 @@ export default defineComponent({
         if (fileItem)
           this.fileInfo = {
             id: fileItem.id,
-            name: fileItem.name,
+            name: fileItem.name as string,
             size: fileItem.size.formatToStringFileSize(),
           };
       } else {
@@ -125,7 +125,7 @@ export default defineComponent({
         if (fileItem)
           this.fileInfo = {
             id: fileItem.id,
-            name: fileItem.name,
+            name: fileItem.name as string,
             size: fileItem.size.formatToStringFileSize(),
           };
       }
