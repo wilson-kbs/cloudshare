@@ -10,10 +10,8 @@ RUN go mod verify
 RUN go build -o cloudshare
 
 FROM alpine:3.13.5
-ARG VERSION
 LABEL app_name=kabaliserv_cloudshare
 LABEL stage=prod
-LABEL version=${VERSION}
 WORKDIR /app
 COPY --from=files-service-builder /app/cloudshare /
 ENTRYPOINT ["/cloudshare"]

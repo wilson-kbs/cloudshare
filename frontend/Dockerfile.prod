@@ -17,10 +17,8 @@ RUN npm run build
 
 
 FROM nginx:stable-alpine
-ARG VERSION
 LABEL app_name=kabaliserv_cloudshare
 LABEL stage=prod
-LABEL version=${VERSION}
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=web-ui_builder /app/dist /usr/share/nginx/html
 EXPOSE 80
