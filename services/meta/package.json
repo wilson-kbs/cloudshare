@@ -38,7 +38,7 @@
     "long": "^4.0.0",
     "mongoose": "^5.11.8",
     "mongoose-autopopulate": "^0.12.3",
-    "nanoid": "^3.1.20",
+    "nanoid": "^3.1.30",
     "node-gyp": "^7.1.2",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
