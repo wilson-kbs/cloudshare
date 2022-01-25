@@ -1,5 +1,5 @@
 ## DEVELOPMENT
-FROM node:15.4.0
+FROM node:15.8
 LABEL app_name=kabaliserv_cloudshare
 LABEL stage=dev
 WORKDIR /usr/src/app
