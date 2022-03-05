@@ -1,5 +1,5 @@
 ## PRODUCTION
-FROM mongo
+FROM mongo:5.0.6-focal
 ARG VERSION
 LABEL app_name=kabaliserv_cloudshare
 LABEL stage=prod
