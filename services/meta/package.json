@@ -39,7 +39,7 @@
     "mongoose": "^5.11.8",
     "mongoose-autopopulate": "^0.12.3",
     "nanoid": "^3.1.20",
-    "node-gyp": "^7.1.2",
+    "node-gyp": "^8.4.1",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.3"
