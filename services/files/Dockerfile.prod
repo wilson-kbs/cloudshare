@@ -9,7 +9,7 @@ RUN go mod download
 RUN go mod verify
 RUN go build -o cloudshare
 
-FROM alpine:3.13.5
+FROM alpine:latest
 ARG VERSION
 LABEL app_name=kabaliserv_cloudshare
 LABEL stage=prod
