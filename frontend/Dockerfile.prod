@@ -16,7 +16,7 @@ ENV VUE_APP_API_BASEPATH ${API_BASEPATH}
 RUN npm run build
 
 
-FROM nginx:stable-alpine
+FROM nginx:1.20-alpine
 ARG VERSION
 LABEL app_name=kabaliserv_cloudshare
 LABEL stage=prod
