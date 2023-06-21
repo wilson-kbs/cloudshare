@@ -34,7 +34,7 @@
     "class-transformer": "^0.3.1",
     "class-validator": "^0.12.2",
     "grpc": "^1.24.4",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "long": "^4.0.0",
     "mongoose": "^5.11.8",
     "mongoose-autopopulate": "^0.12.3",
